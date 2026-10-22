@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { AttendeeList } from "@/components/classes/attendee-list";
 import { ClassActions } from "@/components/classes/class-actions";
 import { ClassStatusBadge } from "@/components/classes/class-status-badge";
@@ -25,7 +25,7 @@ export default async function AdminClassPage(props: PageProps<"/admin/classes/[i
         href="/admin/classes"
         className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" /> All classes
+        <ArrowLeftIcon className="size-4" /> All classes
       </Link>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">

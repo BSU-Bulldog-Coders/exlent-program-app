@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { PeopleTabs } from "@/components/people/people-tabs";
 import { InviteRowActions } from "@/components/people/invite-row-actions";
+import { PeopleHeader } from "@/components/people/people-header";
+import { PeopleSkeleton } from "@/components/people/people-skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -19,7 +22,18 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = { title: "People" };
 
-export default async function PeoplePage() {
+export default function PeoplePage() {
+  return (
+    <>
+      <PeopleHeader />
+      <Suspense fallback={<PeopleSkeleton />}>
+        <PeopleContent />
+      </Suspense>
+    </>
+  );
+}
+
+async function PeopleContent() {
   await requireAdmin();
   const [users, openInvites] = await Promise.all([
     prisma.user.findMany({
@@ -36,13 +50,6 @@ export default async function PeoplePage() {
   const summaries = await getAttendanceSummaries(students);
 
   return (
-    <>
-      <div>
-        <h1 className="text-4xl">People</h1>
-        <p className="text-sm text-muted-foreground">
-          Everyone in the program. Invite people by email; they choose their own password.
-        </p>
-      </div>
       <PeopleTabs
         studentCount={students.length}
         adminCount={admins.length}
@@ -128,7 +135,6 @@ export default async function PeoplePage() {
           </div>
         }
       />
-    </>
   );
 }
 

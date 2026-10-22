@@ -1,12 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { CalendarIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "cn"
+import { CalendarIcon } from "@phosphor-icons/react";
 
 /** shadcn date picker: a Button trigger that opens a Calendar in a Popover. */
 function DatePicker({
@@ -40,7 +39,7 @@ function DatePicker({
           />
         }
       >
-        <CalendarIcon data-icon="inline-start" />
+        <CalendarIcon strokeWidth={2} data-icon="inline-start" />
         {value
           ? new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(value)
           : placeholder}

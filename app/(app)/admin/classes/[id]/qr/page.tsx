@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { AttendeeList } from "@/components/classes/attendee-list";
 import { CloseClassButton } from "@/components/classes/close-class-button";
 import { QrDisplay } from "@/components/classes/qr-display";
@@ -24,10 +24,10 @@ export default async function ClassQrPage(props: PageProps<"/admin/classes/[id]/
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <Link
-            href={`/admin/classes/${id}`}
+            href={`/admin/classes/${id}/attendance`}
             className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="size-4" /> Class details
+            <ArrowLeftIcon className="size-4" /> Take attendance
           </Link>
           <h1 className="text-4xl">{item.name}</h1>
         </div>

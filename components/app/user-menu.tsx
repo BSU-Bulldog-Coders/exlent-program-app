@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
+import { CaretUpDownIcon, SignOutIcon, UserIcon } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -45,18 +45,18 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
               <span className="truncate font-medium">{name}</span>
               <span className="truncate text-xs text-sidebar-foreground/60">{email}</span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4" />
+            <CaretUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" className="min-w-56">
             <DropdownMenuGroup>
               <DropdownMenuItem render={<Link href="/profile" />}>
-                <UserRound />
+                <UserIcon />
                 Profile
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut}>
-              <LogOut />
+              <SignOutIcon />
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

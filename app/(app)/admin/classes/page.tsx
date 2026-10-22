@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { PlusIcon } from "@phosphor-icons/react/ssr";
 import { ClassFormDialog } from "@/components/classes/class-form-dialog";
 import { ClassStatusBadge } from "@/components/classes/class-status-badge";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export default async function AdminClassesPage() {
         <ClassFormDialog
           trigger={
             <Button>
-              <Plus data-icon="inline-start" />
+              <PlusIcon data-icon="inline-start" />
               New
             </Button>
           }

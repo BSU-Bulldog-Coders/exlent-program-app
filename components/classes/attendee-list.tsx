@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserCheck, Users } from "lucide-react";
+import { UserCheckIcon, UsersIcon } from "@phosphor-icons/react";
 import { Badge } from "@/components/ui/badge";
 import {
   Empty,
@@ -76,7 +76,7 @@ export function AttendeeList({
           <Empty className="border">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Users />
+                <UsersIcon />
               </EmptyMedia>
               <EmptyTitle>No one has checked in yet</EmptyTitle>
               <EmptyDescription>
@@ -127,7 +127,7 @@ export function AttendeeList({
           <Empty className="border">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Users />
+                <UsersIcon />
               </EmptyMedia>
               <EmptyTitle>No one has checked in yet</EmptyTitle>
               <EmptyDescription>
@@ -169,7 +169,7 @@ export function AttendeeList({
             <Empty className="border">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
-                  <UserCheck />
+                  <UserCheckIcon />
                 </EmptyMedia>
                 <EmptyTitle>Everyone is checked in</EmptyTitle>
                 <EmptyDescription>No students are missing from this class.</EmptyDescription>

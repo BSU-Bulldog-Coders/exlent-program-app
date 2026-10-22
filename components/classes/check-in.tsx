@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { CircleCheck, CircleX, Loader2 } from "lucide-react";
+import { CheckCircleIcon, XCircleIcon, SpinnerIcon } from "@phosphor-icons/react";
 import { checkIn, type CheckInResult } from "@/app/attend/actions";
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +30,7 @@ export function CheckIn({ token }: { token: string }) {
   if (!result) {
     return (
       <div className="flex flex-col items-center gap-3 text-center">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        <SpinnerIcon className="size-8 animate-spin text-muted-foreground" />
         <p className="text-sm text-muted-foreground">Checking you in…</p>
       </div>
     );
@@ -40,9 +40,9 @@ export function CheckIn({ token }: { token: string }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       {success ? (
-        <CircleCheck className="size-12 text-success" />
+        <CheckCircleIcon className="size-12 text-success" />
       ) : (
-        <CircleX className="size-12 text-destructive" />
+        <XCircleIcon className="size-12 text-destructive" />
       )}
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl">

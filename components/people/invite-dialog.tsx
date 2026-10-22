@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { MailPlus } from "lucide-react";
+import { UserPlusIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { inviteUser } from "@/app/(app)/admin/people/actions";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export function InviteDialog({ role }: { role: "STUDENT" | "ADMIN" }) {
       <DialogTrigger
         render={
           <Button>
-            <MailPlus data-icon="inline-start" />
+            <UserPlusIcon data-icon="inline-start" />
             Invite {noun}
           </Button>
         }

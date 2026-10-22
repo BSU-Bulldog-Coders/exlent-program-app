@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/dal";
 import { formatDateTime } from "@/lib/format";
@@ -31,7 +31,7 @@ export default async function StudentClassPage(props: PageProps<"/classes/[id]">
         href="/classes"
         className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" /> My classes
+        <ArrowLeftIcon className="size-4" /> My classes
       </Link>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">

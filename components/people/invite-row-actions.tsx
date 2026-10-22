@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { Ban, RotateCw } from "lucide-react";
+import { ProhibitIcon, ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { resendInvite, revokeInvite } from "@/app/(app)/admin/people/actions";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export function InviteRowActions({ inviteId, email }: { inviteId: string; email:
         disabled={pending}
         onClick={() => run(resendInvite, `Invitation resent to ${email}.`)}
       >
-        <RotateCw data-icon="inline-start" />
+        <ArrowClockwiseIcon data-icon="inline-start" />
         Resend
       </Button>
       <Button
@@ -34,7 +34,7 @@ export function InviteRowActions({ inviteId, email }: { inviteId: string; email:
         disabled={pending}
         onClick={() => run(revokeInvite, "Invitation revoked.")}
       >
-        <Ban data-icon="inline-start" />
+        <ProhibitIcon data-icon="inline-start" />
         Revoke
       </Button>
     </div>

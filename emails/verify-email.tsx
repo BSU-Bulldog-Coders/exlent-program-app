@@ -7,7 +7,7 @@ export function VerifyEmail({ name, url }: { name: string; url: string }) {
       heading="Verify your email"
       cta={{ label: "Verify email", href: url }}
     >
-      Hi {name}, confirm your email address to finish creating your Exlent program account.
+      Hi {name}, confirm your email address to finish creating your ExLENT program account.
     </EmailLayout>
   );
 }

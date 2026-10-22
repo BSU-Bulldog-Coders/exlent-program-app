@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Lock } from "lucide-react";
+import { LockIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { closeClass } from "@/app/(app)/admin/classes/actions";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export function CloseClassButton({ classId }: { classId: string }) {
         })
       }
     >
-      <Lock data-icon="inline-start" />
+      <LockIcon data-icon="inline-start" />
       Close class
     </Button>
   );
