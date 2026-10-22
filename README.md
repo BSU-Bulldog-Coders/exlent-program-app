@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Exlent Program
 
-## Getting Started
+Program management app. Attendance is the first feature: admins create classes and show a rotating QR code; students who scan it while signed in are marked present automatically.
 
-First, run the development server:
+Stack: Next.js 16 (App Router, Cache Components), Postgres + Prisma 7, Better Auth, Resend, shadcn/ui (Base UI) + Tailwind v4.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Setup
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. `bun install` (also runs `prisma generate`)
+2. Copy `.env.example` to `.env` and fill it in:
+   - `DATABASE_URL`: a hosted Postgres URL (Neon/Supabase). Optional `DIRECT_URL` for migrations.
+   - `BETTER_AUTH_SECRET`: `openssl rand -base64 32`
+   - `RESEND_API_KEY`, `RESEND_FROM`: until a domain is verified in Resend, `onboarding@resend.dev` only delivers to your own Resend account email.
+   - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`: the first admin.
+3. `bun run db:deploy` (applies `prisma/migrations`; use `bun run db:migrate` while changing the schema)
+4. `bun run db:seed` creates the first admin (safe to re-run)
+5. `bun run dev`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Without `RESEND_API_KEY` (outside production) emails are logged to the server console with their links instead of being sent.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploying to Vercel
 
-## Learn More
+Vercel runs the `vercel-build` script (`scripts/vercel-build.mjs`) instead of `build`.
 
-To learn more about Next.js, take a look at the following resources:
+- **Production deploys** run `prisma migrate deploy`, then `prisma/seed.ts`, then `next build`.
+  - `migrate deploy` only applies migrations that aren't recorded in the database yet, so a deploy with no schema change does nothing. It never creates migrations: when you change `prisma/schema.prisma`, run `bun run db:migrate` locally and commit the new folder in `prisma/migrations`.
+  - The seed creates the first admin only when the database has **no admin**. Once any admin exists, every later deploy exits immediately. It never promotes an existing account.
+  - If a migration or the build fails, the deployment fails and the previous one keeps serving.
+- **Preview deploys** skip migrations and the seed, so they never write to the production database.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Environment variables to set in the Vercel project (Production):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Notes |
+|---|---|
+| `DATABASE_URL` | Pooled Neon URL (used by the app) |
+| `DIRECT_URL` | Non-pooled Neon URL. Used for migrations; recommended to avoid pooler lock issues |
+| `BETTER_AUTH_SECRET` | `openssl rand -base64 32` |
+| `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_URL` | Your production domain. If unset, the Vercel domain is used |
+| `ATTENDANCE_TOKEN_SECRET` | Optional; falls back to `BETTER_AUTH_SECRET` |
+| `RESEND_API_KEY`, `RESEND_FROM` | `RESEND_FROM` must be on a domain verified in Resend before you can email anyone |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | Only read on the first deploy. You can remove `ADMIN_PASSWORD` afterwards |
 
-## Deploy on Vercel
+## How it works
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Roles:** `ADMIN` and `STUDENT`. Public sign-up always creates a student and requires email verification. Admins are created by the seed script or by an admin inviting another admin.
+- **Invites:** admins invite people from People → Students / Admins. The email link (valid 7 days, single use) lets the invitee choose a password; the address comes from the invite and counts as verified. Admins can resend or revoke.
+- **Classes:** Classes → New (name, date, description). A new class is open for check-in immediately; Close stops it. The start time and timezone are taken from the creating admin's device.
+- **QR:** the code encodes `/attend?t=<token>` where the token is HMAC-signed, bound to the class, and valid for 60 seconds; the screen refreshes it every 30 seconds. Scanning while signed out sends the student to sign in and then records attendance automatically.
+- **Visibility:** admins see everything. Students see only the classes they attended and their own profile.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+
+| Script | What it does |
+|---|---|
+| `bun run dev` / `build` / `start` | Next.js (`vercel-build` is what Vercel runs) |
+| `bun run lint` | ESLint |
+| `bun test` | Unit tests (QR tokens, invites, formatting) |
+| `bun run db:migrate` / `db:deploy` / `db:seed` | Prisma migrations and the admin seed |
