@@ -6,7 +6,7 @@ import { VerifyEmail } from "@/emails/verify-email";
 import { WelcomeEmail } from "@/emails/welcome-email";
 import { appUrl } from "@/lib/env";
 
-const DEFAULT_FROM = "Exlent Program <onboarding@resend.dev>";
+const DEFAULT_FROM = "ExLENT Program <onboarding@resend.dev>";
 
 let resend: Resend | null = null;
 function client() {
@@ -66,7 +66,7 @@ export function sendInviteEmail(args: {
 }) {
   return send({
     to: args.to,
-    subject: "You're invited to the Exlent program",
+    subject: "You're invited to the ExLENT program",
     react: InviteEmail({ inviterName: args.inviterName, role: args.role, url: args.url }),
     linkForLog: args.url,
   });
@@ -85,7 +85,7 @@ export function sendWelcomeEmail(args: { to: string; name: string }) {
   const url = `${appUrl()}/`;
   return send({
     to: args.to,
-    subject: "Welcome to the Exlent program",
+    subject: "Welcome to the ExLENT program",
     react: WelcomeEmail({ name: args.name, url }),
     linkForLog: url,
   });

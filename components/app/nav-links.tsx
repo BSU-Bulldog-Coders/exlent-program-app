@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  CalendarDays,
-  LayoutDashboard,
-  UserRound,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { CalendarDotsIcon, SquaresFourIcon, UserIcon, UsersIcon, type Icon } from "@phosphor-icons/react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -17,17 +11,17 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-type NavItem = { title: string; href: string; icon: LucideIcon; exact?: boolean };
+type NavItem = { title: string; href: string; icon: Icon; exact?: boolean };
 
 const ADMIN_NAV: NavItem[] = [
-  { title: "Overview", href: "/admin", icon: LayoutDashboard, exact: true },
-  { title: "Classes", href: "/admin/classes", icon: CalendarDays },
-  { title: "People", href: "/admin/people", icon: Users },
+  { title: "Overview", href: "/admin", icon: SquaresFourIcon, exact: true },
+  { title: "Classes", href: "/admin/classes", icon: CalendarDotsIcon },
+  { title: "People", href: "/admin/people", icon: UsersIcon },
 ];
 
 const STUDENT_NAV: NavItem[] = [
-  { title: "Classes", href: "/classes", icon: CalendarDays },
-  { title: "Profile", href: "/profile", icon: UserRound },
+  { title: "Classes", href: "/classes", icon: CalendarDotsIcon },
+  { title: "Profile", href: "/profile", icon: UserIcon },
 ];
 
 export function NavLinks({ role }: { role: "ADMIN" | "STUDENT" }) {

@@ -17,7 +17,7 @@ const display = Cormorant_Garamond({
 const mono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "Exlent Program", template: "%s | Exlent Program" },
+  title: { default: "ExLENT Program", template: "%s | ExLENT Program" },
   description: "Manage students and track class attendance.",
 };
 

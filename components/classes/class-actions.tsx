@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Lock, Pencil, QrCode } from "lucide-react";
+import { ListChecksIcon, LockIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { closeClass, openClass } from "@/app/(app)/admin/classes/actions";
+import { closeClass } from "@/app/(app)/admin/classes/actions";
 import { ClassFormDialog } from "@/components/classes/class-form-dialog";
 import { Button } from "@/components/ui/button";
 
@@ -20,14 +21,6 @@ export function ClassActions({ data }: { data: ClassData }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  function showQr() {
-    startTransition(async () => {
-      const result = await openClass(data.id);
-      if (!result.ok) return void toast.error(result.error);
-      router.push(`/admin/classes/${data.id}/qr`);
-    });
-  }
-
   function close() {
     startTransition(async () => {
       const result = await closeClass(data.id);
@@ -39,13 +32,13 @@ export function ClassActions({ data }: { data: ClassData }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Button onClick={showQr} disabled={pending}>
-        <QrCode data-icon="inline-start" />
-        {data.status === "CLOSED" ? "Reopen and show QR" : "Show QR"}
+      <Button render={<Link href={`/admin/classes/${data.id}/attendance`} />}>
+        <ListChecksIcon data-icon="inline-start" />
+        Take attendance
       </Button>
       {data.status === "OPEN" ? (
         <Button variant="outline" onClick={close} disabled={pending}>
-          <Lock data-icon="inline-start" />
+          <LockIcon data-icon="inline-start" />
           Close class
         </Button>
       ) : null}
@@ -53,7 +46,7 @@ export function ClassActions({ data }: { data: ClassData }) {
         initial={data}
         trigger={
           <Button variant="outline">
-            <Pencil data-icon="inline-start" />
+            <PencilSimpleIcon data-icon="inline-start" />
             Edit
           </Button>
         }

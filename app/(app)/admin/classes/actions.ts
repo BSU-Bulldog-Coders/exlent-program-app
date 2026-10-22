@@ -84,3 +84,34 @@ export async function closeClass(id: string): Promise<ActionResult> {
   revalidatePath(`/admin/classes/${id}`);
   return { ok: true };
 }
+
+/**
+ * Manually marks a student present or absent for a class. Absent means no
+ * attendance record, so it removes the student's check-in. Admins can do this
+ * whatever the class status is.
+ */
+export async function setAttendance(
+  classId: string,
+  userId: string,
+  present: boolean,
+): Promise<ActionResult> {
+  await requireAdmin();
+
+  const [item, student] = await Promise.all([
+    prisma.class.findUnique({ where: { id: classId }, select: { id: true } }),
+    prisma.user.findFirst({ where: { id: userId, role: "STUDENT" }, select: { id: true } }),
+  ]);
+  if (!item) return { ok: false, error: "Class not found." };
+  if (!student) return { ok: false, error: "Student not found." };
+
+  if (present) {
+    await prisma.attendance.createMany({ data: { classId, userId }, skipDuplicates: true });
+  } else {
+    await prisma.attendance.deleteMany({ where: { classId, userId } });
+  }
+
+  revalidatePath(`/admin/classes/${classId}`);
+  revalidatePath("/admin/classes");
+  revalidatePath(`/admin/people/${userId}`);
+  return { ok: true };
+}

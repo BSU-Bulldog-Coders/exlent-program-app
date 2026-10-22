@@ -1,8 +1,8 @@
-# Exlent Program
+# ExLENT Program
 
 Program management app. Attendance is the first feature: admins create classes and show a rotating QR code; students who scan it while signed in are marked present automatically.
 
-Stack: Next.js 16 (App Router, Cache Components), Postgres + Prisma 7, Better Auth, Resend, shadcn/ui (Base UI) + Tailwind v4.
+Stack: Next.js 16 (App Router, Cache Components), Postgres + Prisma 7, Better Auth, Resend, shadcn/ui (Base UI) + Phosphor icons + Tailwind v4.
 
 ## Setup
 
@@ -44,7 +44,7 @@ Environment variables to set in the Vercel project (Production):
 
 - **Roles:** `ADMIN` and `STUDENT`. Public sign-up always creates a student and requires email verification. Admins are created by the seed script or by an admin inviting another admin.
 - **Invites:** admins invite people from People → Students / Admins. The email link (valid 7 days, single use) lets the invitee choose a password; the address comes from the invite and counts as verified. Admins can resend or revoke.
-- **Classes:** Classes → New (name, date, description). A new class is open for check-in immediately; Close stops it. The start time and timezone are taken from the creating admin's device.
+- **Classes:** Classes → New (name, date, description). A new class is open for check-in immediately; Close stops it. Take attendance lists every student with Present / Absent buttons, and Scan QR code (top right of that page) shows the rotating QR for students to scan. The start time and timezone are taken from the creating admin's device.
 - **QR:** the code encodes `/attend?t=<token>` where the token is HMAC-signed, bound to the class, and valid for 60 seconds; the screen refreshes it every 30 seconds. Scanning while signed out sends the student to sign in and then records attendance automatically.
 - **Visibility:** admins see everything. Students see only the classes they attended and their own profile.
 

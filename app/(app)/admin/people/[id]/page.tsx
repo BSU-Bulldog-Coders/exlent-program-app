@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -59,7 +59,7 @@ export default async function PersonPage(props: PageProps<"/admin/people/[id]">)
         href="/admin/people"
         className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" /> People
+        <ArrowLeftIcon className="size-4" /> People
       </Link>
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-3">

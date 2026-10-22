@@ -7,7 +7,7 @@ export function WelcomeEmail({ name, url }: { name: string; url: string }) {
       heading={`Welcome, ${name}`}
       cta={{ label: "Open dashboard", href: url }}
     >
-      Your Exlent program account has been created. Scan the QR code your admin displays in
+      Your ExLENT program account has been created. Scan the QR code your admin displays in
       class and your attendance is recorded automatically while you&apos;re signed in.
     </EmailLayout>
   );
