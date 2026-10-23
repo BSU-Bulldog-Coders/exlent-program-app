@@ -15,6 +15,7 @@ export default function Loading() {
           <FieldSkeleton label="Password" htmlFor="password" />
         </FieldGroup>
         <Button disabled>Sign in</Button>
+        <p className="text-center text-sm underline underline-offset-4">Forgot password?</p>
         <p className="text-center text-sm text-muted-foreground">
           New here? <span className="underline underline-offset-4">Create an account</span>
         </p>

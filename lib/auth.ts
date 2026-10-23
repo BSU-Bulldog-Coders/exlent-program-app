@@ -14,6 +14,9 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    // Password-reset tokens are issued by lib/password-reset.ts so the token,
+    // audit record, and durable email outbox event commit together.
+    revokeSessionsOnPasswordReset: true,
     // Open sign-up must verify the address. Invited users are created already
     // verified (see lib/accounts.ts), since the invite email proves ownership.
     requireEmailVerification: true,

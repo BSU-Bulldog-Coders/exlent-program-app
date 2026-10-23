@@ -26,5 +26,5 @@ async function LoginContent({ searchParams }: { searchParams: PageProps<"/login"
     typeof params.callbackURL === "string" ? params.callbackURL : undefined,
   );
   if (await getCurrentUser()) redirect(callbackURL);
-  return <LoginForm callbackURL={callbackURL} />;
+  return <LoginForm callbackURL={callbackURL} passwordReset={params.passwordReset === "1"} />;
 }

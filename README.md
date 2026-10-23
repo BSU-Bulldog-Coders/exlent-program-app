@@ -38,12 +38,14 @@ Environment variables to set in the Vercel project (Production):
 | `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_URL` | Your production domain. If unset, the Vercel domain is used |
 | `ATTENDANCE_TOKEN_SECRET` | Optional; falls back to `BETTER_AUTH_SECRET` |
 | `RESEND_API_KEY`, `RESEND_FROM` | `RESEND_FROM` must be on a domain verified in Resend before you can email anyone |
+| `CRON_SECRET` | Random secret used to authenticate the daily password-reset email retry cron job |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | Only read on the first deploy. You can remove `ADMIN_PASSWORD` afterwards |
 
 ## How it works
 
 - **Roles:** `ADMIN` and `STUDENT`. Public sign-up always creates a student and requires email verification. Admins are created by the seed script or by an admin inviting another admin.
 - **Invites:** admins invite people from People → Students / Admins. The email link (valid 7 days, single use) lets the invitee choose a password; the address comes from the invite and counts as verified. Admins can resend or revoke.
+- **Password resets:** an active reset link is valid for 24 hours and produces one durable email event. The app attempts delivery immediately; Vercel Hobby also retries pending email once daily through `/api/cron/email-outbox`. Set `CRON_SECRET` in Vercel so its scheduled request is authenticated. A temporary email outage can therefore require the person to request another link after the 24-hour window.
 - **Classes:** Classes → New (name, date, description). A new class is open for check-in immediately; Close stops it. Take attendance lists every student with Present / Absent buttons, and Scan QR code (top right of that page) shows the rotating QR for students to scan. The start time and timezone are taken from the creating admin's device.
 - **QR:** the code encodes `/attend?t=<token>` where the token is HMAC-signed, bound to the class, and valid for 60 seconds; the screen refreshes it every 30 seconds. Scanning while signed out sends the student to sign in and then records attendance automatically.
 - **Visibility:** admins see everything. Students see only the classes they attended and their own profile.
@@ -54,5 +56,5 @@ Environment variables to set in the Vercel project (Production):
 |---|---|
 | `bun run dev` / `build` / `start` | Next.js (`vercel-build` is what Vercel runs) |
 | `bun run lint` | ESLint |
-| `bun test` | Unit tests (QR tokens, invites, formatting) |
+| `bun test` | Unit tests (QR tokens, invites, formatting, password-reset issuance) |
 | `bun run db:migrate` / `db:deploy` / `db:seed` | Prisma migrations and the admin seed |

@@ -50,6 +50,7 @@ export function PeopleSkeleton() {
               <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Attendance</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -69,6 +70,9 @@ export function PeopleSkeleton() {
                 </TableCell>
                 <TableCell>
                   <Skeleton className="ml-auto h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="ml-auto h-8 w-32" />
                 </TableCell>
               </TableRow>
             ))}

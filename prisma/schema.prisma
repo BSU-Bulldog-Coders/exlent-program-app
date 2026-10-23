@@ -24,6 +24,17 @@ enum ClassStatus {
   CLOSED
 }
 
+enum EmailOutboxKind {
+  PASSWORD_RESET
+}
+
+enum EmailOutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  ABANDONED
+}
+
 // --- Better Auth core tables ---
 
 model User {
@@ -44,6 +55,7 @@ model User {
   attendances  Attendance[]
   invitesSent  Invite[]     @relation("InvitedBy")
   classes      Class[]
+  passwordResetRequests PasswordResetRequest[]
 
   @@map("user")
 }
@@ -93,6 +105,44 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// A durable record of each reset link that this application issues. Better Auth
+// owns consuming the matching Verification record atomically with the password
+// update; this table lets issuance and delivery be deduplicated safely.
+model PasswordResetRequest {
+  id                     String   @id @default(cuid())
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationIdentifier String   @unique
+  expiresAt              DateTime
+  createdAt              DateTime @default(now())
+  outbox                 EmailOutbox?
+
+  @@index([userId, expiresAt])
+}
+
+// Transactional email outbox. A worker claims each event before sending it and
+// always gives Resend the same idempotency key when delivery is retried.
+model EmailOutbox {
+  id                     String            @id @default(cuid())
+  kind                   EmailOutboxKind
+  to                     String
+  payload                Json
+  idempotencyKey         String            @unique
+  status                 EmailOutboxStatus @default(PENDING)
+  attempts               Int               @default(0)
+  nextAttemptAt          DateTime          @default(now())
+  lockedUntil            DateTime?
+  leaseId                String?
+  lastError              String?
+  sentAt                 DateTime?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  passwordResetRequestId String            @unique
+  passwordResetRequest   PasswordResetRequest @relation(fields: [passwordResetRequestId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
 }
 
 // --- Program domain ---
