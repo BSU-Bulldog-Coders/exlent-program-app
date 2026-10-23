@@ -2,6 +2,7 @@ import "server-only";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
 import { InviteEmail } from "@/emails/invite-email";
+import { ResetPasswordEmail } from "@/emails/reset-password-email";
 import { VerifyEmail } from "@/emails/verify-email";
 import { WelcomeEmail } from "@/emails/welcome-email";
 import { appUrl } from "@/lib/env";
@@ -25,11 +26,13 @@ async function send({
   subject,
   react,
   linkForLog,
+  idempotencyKey,
 }: {
   to: string;
   subject: string;
   react: ReactElement;
   linkForLog: string;
+  idempotencyKey?: string;
 }) {
   const resendClient = client();
   if (!resendClient) {
@@ -39,12 +42,15 @@ async function send({
     console.warn(`[email] RESEND_API_KEY not set. "${subject}" to ${to}: ${linkForLog}`);
     return;
   }
-  const { error } = await resendClient.emails.send({
-    from: process.env.RESEND_FROM ?? DEFAULT_FROM,
-    to,
-    subject,
-    react,
-  });
+  const { error } = await resendClient.emails.send(
+    {
+      from: process.env.RESEND_FROM ?? DEFAULT_FROM,
+      to,
+      subject,
+      react,
+    },
+    idempotencyKey ? { idempotencyKey } : undefined,
+  );
   if (error) {
     throw new Error(`Resend failed to send "${subject}": ${error.message}`);
   }
@@ -88,5 +94,20 @@ export function sendWelcomeEmail(args: { to: string; name: string }) {
     subject: "Welcome to the ExLENT program",
     react: WelcomeEmail({ name: args.name, url }),
     linkForLog: url,
+  });
+}
+
+export function sendPasswordResetEmail(args: {
+  to: string;
+  name: string;
+  url: string;
+  idempotencyKey: string;
+}) {
+  return send({
+    to: args.to,
+    subject: "Reset your ExLENT program password",
+    react: ResetPasswordEmail({ name: args.name, url: args.url }),
+    linkForLog: args.url,
+    idempotencyKey: args.idempotencyKey,
   });
 }

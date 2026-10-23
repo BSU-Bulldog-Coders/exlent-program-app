@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { Badge } from "@/components/ui/badge";
+import { PasswordResetButton } from "@/components/people/password-reset-button";
+import { PersonSkeleton } from "@/components/people/person-skeleton";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -19,9 +22,17 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = { title: "Person" };
 
-export default async function PersonPage(props: PageProps<"/admin/people/[id]">) {
+export default function PersonPage(props: PageProps<"/admin/people/[id]">) {
+  return (
+    <Suspense fallback={<PersonSkeleton />}>
+      <PersonContent params={props.params} />
+    </Suspense>
+  );
+}
+
+async function PersonContent({ params }: { params: PageProps<"/admin/people/[id]">["params"] }) {
   await requireAdmin();
-  const { id } = await props.params;
+  const { id } = await params;
   const person = await prisma.user.findUnique({
     where: { id },
     select: {
@@ -71,6 +82,9 @@ export default async function PersonPage(props: PageProps<"/admin/people/[id]">)
           {person.email} · joined {formatDate(person.createdAt)} via{" "}
           {person.joinedVia.toLowerCase()}
         </p>
+      </div>
+      <div>
+        <PasswordResetButton userId={person.id} email={person.email} />
       </div>
 
       {isStudent && summary ? (

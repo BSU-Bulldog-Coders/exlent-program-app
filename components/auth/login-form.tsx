@@ -9,7 +9,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 
-export function LoginForm({ callbackURL }: { callbackURL: string }) {
+export function LoginForm({ callbackURL, passwordReset }: { callbackURL: string; passwordReset: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +51,9 @@ export function LoginForm({ callbackURL }: { callbackURL: string }) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      {passwordReset ? (
+        <p className="text-sm text-muted-foreground">Password reset. Sign in with your new password.</p>
+      ) : null}
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -80,6 +83,9 @@ export function LoginForm({ callbackURL }: { callbackURL: string }) {
       <Button type="submit" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>
+      <Link href="/forgot-password" className="text-center text-sm underline underline-offset-4">
+        Forgot password?
+      </Link>
       <p className="text-center text-sm text-muted-foreground">
         New here?{" "}
         <Link

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PeopleTabs } from "@/components/people/people-tabs";
 import { InviteRowActions } from "@/components/people/invite-row-actions";
+import { PasswordResetButton } from "@/components/people/password-reset-button";
 import { PeopleHeader } from "@/components/people/people-header";
 import { PeopleSkeleton } from "@/components/people/people-skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,7 @@ async function PeopleContent() {
                   <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Attendance</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -86,13 +88,16 @@ async function PeopleContent() {
                       <TableCell className="text-right">
                         {rate === null ? "–" : `${rate}% (${summary?.attended}/${summary?.eligible})`}
                       </TableCell>
+                      <TableCell className="text-right">
+                        <PasswordResetButton userId={student.id} email={student.email} />
+                      </TableCell>
                     </TableRow>
                   );
                 })}
-                <InviteRows invites={openInvites.filter((i) => i.role === "STUDENT")} colSpan={5} />
+                <InviteRows invites={openInvites.filter((i) => i.role === "STUDENT")} colSpan={6} />
                 {students.length === 0 && openInvites.every((i) => i.role !== "STUDENT") ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
                       No students yet. Invite the first one.
                     </TableCell>
                   </TableRow>
@@ -110,7 +115,7 @@ async function PeopleContent() {
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
-                  <TableHead />
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -126,7 +131,9 @@ async function PeopleContent() {
                       <Badge variant="secondary">Active</Badge>
                     </TableCell>
                     <TableCell>{formatDate(admin.createdAt)}</TableCell>
-                    <TableCell />
+                    <TableCell className="text-right">
+                      <PasswordResetButton userId={admin.id} email={admin.email} />
+                    </TableCell>
                   </TableRow>
                 ))}
                 <InviteRows invites={openInvites.filter((i) => i.role === "ADMIN")} colSpan={5} />

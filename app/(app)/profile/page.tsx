@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ProfileForm } from "@/components/app/profile-form";
+import { ChangePasswordForm } from "@/components/app/change-password-form";
+import { ProfileSkeleton } from "@/components/app/profile-skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAttendanceSummaries } from "@/lib/attendance-stats";
 import { requireUser } from "@/lib/dal";
@@ -9,7 +12,15 @@ import { prisma } from "@/lib/prisma";
 export const metadata: Metadata = { title: "Profile" };
 
 /** Always the signed-in user's own profile; there is no way to open someone else's. */
-export default async function ProfilePage() {
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<ProfileSkeleton />}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+async function ProfileContent() {
   const current = await requireUser();
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: current.id },
@@ -51,6 +62,7 @@ export default async function ProfilePage() {
         </div>
       ) : null}
       <ProfileForm name={user.name} email={user.email} />
+      <ChangePasswordForm />
     </>
   );
 }

@@ -6,8 +6,10 @@ import { requireAdmin } from "@/lib/dal";
 import { sendInviteEmail } from "@/lib/email";
 import { INVITE_TTL_MS, generateInviteToken, inviteStatus, inviteUrl } from "@/lib/invites";
 import { prisma } from "@/lib/prisma";
+import { requestPasswordReset } from "@/lib/password-reset";
 
 export type InviteResult = { ok: true } | { ok: false; error: string };
+export type PasswordResetResult = { ok: true; active: boolean } | { ok: false; error: string };
 
 const inviteSchema = z.object({
   email: z.email("Enter a valid email address.").transform((value) => value.toLowerCase()),
@@ -89,4 +91,17 @@ export async function revokeInvite(inviteId: string): Promise<InviteResult> {
   await prisma.invite.update({ where: { id: invite.id }, data: { revokedAt: new Date() } });
   revalidatePath("/admin/people");
   return { ok: true };
+}
+
+/** Admin-triggered reset uses the same deduplicated issuance service as users. */
+export async function sendPasswordReset(userId: string): Promise<PasswordResetResult> {
+  await requireAdmin();
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+  if (!user) return { ok: false, error: "This person no longer has an account." };
+
+  const result = await requestPasswordReset({ email: user.email });
+  return { ok: true, active: result === "active" };
 }
