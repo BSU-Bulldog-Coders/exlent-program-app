@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDotsIcon, SquaresFourIcon, UserIcon, UsersIcon, type Icon } from "@phosphor-icons/react";
+import { BellIcon, CalendarDotsIcon, SquaresFourIcon, UserIcon, UsersIcon, type Icon } from "@phosphor-icons/react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -14,12 +14,14 @@ import {
 type NavItem = { title: string; href: string; icon: Icon; exact?: boolean };
 
 const ADMIN_NAV: NavItem[] = [
+  { title: "Home", href: "/", icon: BellIcon, exact: true },
   { title: "Overview", href: "/admin", icon: SquaresFourIcon, exact: true },
   { title: "Classes", href: "/admin/classes", icon: CalendarDotsIcon },
   { title: "People", href: "/admin/people", icon: UsersIcon },
 ];
 
 const STUDENT_NAV: NavItem[] = [
+  { title: "Home", href: "/", icon: BellIcon, exact: true },
   { title: "Classes", href: "/classes", icon: CalendarDotsIcon },
   { title: "Profile", href: "/profile", icon: UserIcon },
 ];

@@ -35,6 +35,14 @@ enum EmailOutboxStatus {
   ABANDONED
 }
 
+enum AnnouncementDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELED
+}
+
 // --- Better Auth core tables ---
 
 model User {
@@ -56,6 +64,11 @@ model User {
   invitesSent  Invite[]     @relation("InvitedBy")
   classes      Class[]
   passwordResetRequests PasswordResetRequest[]
+  announcementsAuthored Announcement[] @relation("AnnouncementAuthor")
+
+  // The saved default used by this admin's announcement composer. It is ignored
+  // for students, who never receive the admin management controls.
+  announcementEmailDefault Boolean @default(false)
 
   @@map("user")
 }
@@ -178,8 +191,51 @@ model Class {
   createdAt   DateTime    @default(now())
 
   attendances Attendance[]
+  announcements Announcement[]
 
   @@index([startsAt])
+}
+
+model Announcement {
+  id             String   @id @default(cuid())
+  title          String
+  body           String
+  classId        String?
+  class          Class?  @relation(fields: [classId], references: [id], onDelete: SetNull)
+  authorId       String
+  author         User    @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  emailRequested Boolean @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  deliveries AnnouncementDelivery[]
+
+  @@index([createdAt])
+  @@index([classId])
+}
+
+// Each record snapshots one verified student recipient when an announcement is
+// published. The email address is intentionally retained even if the account is
+// later changed, so retries target the original audience deterministically.
+model AnnouncementDelivery {
+  id             String                     @id @default(cuid())
+  announcementId String
+  announcement   Announcement               @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  recipientEmail String
+  payload        Json
+  idempotencyKey String                     @unique
+  status         AnnouncementDeliveryStatus @default(PENDING)
+  attempts       Int                        @default(0)
+  nextAttemptAt  DateTime                   @default(now())
+  lockedUntil    DateTime?
+  leaseId        String?
+  lastError      String?
+  sentAt         DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  @@unique([announcementId, recipientEmail])
+  @@index([status, nextAttemptAt])
 }
 
 model Attendance {

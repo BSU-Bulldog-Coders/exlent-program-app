@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { deliverDueAnnouncementDeliveries } from "@/lib/announcement-delivery";
 import { deliverDueOutboxEvents } from "@/lib/password-reset";
 
 export async function GET(request: Request) {
@@ -6,6 +7,10 @@ export async function GET(request: Request) {
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await deliverDueOutboxEvents();
+  const [passwordResets, announcements] = await Promise.all([
+    deliverDueOutboxEvents(),
+    deliverDueAnnouncementDeliveries(),
+  ]);
+  const result = { passwordResets, announcements };
   return NextResponse.json(result);
 }

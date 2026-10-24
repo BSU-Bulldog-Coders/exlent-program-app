@@ -2,6 +2,7 @@ import "server-only";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
 import { InviteEmail } from "@/emails/invite-email";
+import { AnnouncementEmail } from "@/emails/announcement-email";
 import { ResetPasswordEmail } from "@/emails/reset-password-email";
 import { VerifyEmail } from "@/emails/verify-email";
 import { WelcomeEmail } from "@/emails/welcome-email";
@@ -107,6 +108,27 @@ export function sendPasswordResetEmail(args: {
     to: args.to,
     subject: "Reset your ExLENT program password",
     react: ResetPasswordEmail({ name: args.name, url: args.url }),
+    linkForLog: args.url,
+    idempotencyKey: args.idempotencyKey,
+  });
+}
+export function sendAnnouncementEmail(args: {
+  to: string;
+  title: string;
+  body: string;
+  className: string | null;
+  url: string;
+  idempotencyKey: string;
+}) {
+  return send({
+    to: args.to,
+    subject: args.title,
+    react: AnnouncementEmail({
+      title: args.title,
+      body: args.body,
+      className: args.className,
+      url: args.url,
+    }),
     linkForLog: args.url,
     idempotencyKey: args.idempotencyKey,
   });
