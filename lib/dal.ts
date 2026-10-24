@@ -32,12 +32,13 @@ export async function requireUser(returnTo?: string): Promise<CurrentUser> {
 
 export async function requireAdmin(): Promise<CurrentUser> {
   const user = await requireUser();
-  if (user.role !== "ADMIN") redirect("/classes");
+  if (user.role !== "ADMIN") redirect("/");
   return user;
 }
 
 export function homePathFor(role: Role) {
-  return role === "ADMIN" ? "/admin" : "/classes";
+  void role;
+  return "/";
 }
 
 /** Only allow same-origin relative redirects (blocks open redirects). */
