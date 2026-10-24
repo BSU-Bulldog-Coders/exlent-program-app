@@ -112,7 +112,6 @@ export function sendPasswordResetEmail(args: {
     idempotencyKey: args.idempotencyKey,
   });
 }
-
 export function sendAnnouncementEmail(args: {
   to: string;
   title: string;
