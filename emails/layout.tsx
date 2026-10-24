@@ -16,11 +16,14 @@ export function EmailLayout({
   heading,
   children,
   cta,
+  richContent = false,
 }: {
   preview: string;
   heading: string;
   children: ReactNode;
   cta?: { label: string; href: string };
+  /** Rich announcement content contains its own block elements. */
+  richContent?: boolean;
 }) {
   return (
     <Html>
@@ -39,7 +42,11 @@ export function EmailLayout({
           <Heading as="h1" style={{ fontSize: "22px", margin: "0 0 16px" }}>
             {heading}
           </Heading>
-          <Text style={{ fontSize: "15px", lineHeight: "24px", color: "#333" }}>{children}</Text>
+          {richContent ? (
+            <Section style={{ fontSize: "15px", lineHeight: "24px", color: "#333" }}>{children}</Section>
+          ) : (
+            <Text style={{ fontSize: "15px", lineHeight: "24px", color: "#333" }}>{children}</Text>
+          )}
           {cta ? (
             <Section style={{ margin: "24px 0" }}>
               <Button
