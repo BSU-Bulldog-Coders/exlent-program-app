@@ -22,7 +22,7 @@ export default async function TakeAttendancePage(
     prisma.user.findMany({
       where: { role: "STUDENT" },
       orderBy: { name: "asc" },
-      select: { id: true, name: true },
+      select: { id: true, name: true, image: true },
     }),
     prisma.attendance.findMany({ where: { classId: id }, select: { userId: true } }),
   ]);

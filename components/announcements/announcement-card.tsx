@@ -1,6 +1,7 @@
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { AnnouncementCardActions } from "@/components/announcements/announcement-card-actions";
+import { UserAvatar } from "@/components/app/user-avatar";
 import type { AnnouncementClassOption } from "@/components/announcements/announcement-form-dialog";
 import { MarkdownContent } from "@/components/announcements/markdown-content";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ export type AnnouncementCardData = {
   body: string;
   classId: string | null;
   createdAt: Date;
-  author: { name: string };
+  author: { id: string; name: string; image: string | null };
   class: { name: string } | null;
 };
 
@@ -30,8 +31,11 @@ export function AnnouncementCard({
     <Card className="[--card-spacing:--spacing(4)]">
       <CardHeader className="gap-1">
         <CardTitle>{announcement.title}</CardTitle>
-        <CardDescription className="leading-tight">
-          Posted by {announcement.author.name} on {formatDate(announcement.createdAt)}
+        <CardDescription className="flex items-center gap-2 leading-tight">
+          <UserAvatar user={announcement.author} size="sm" />
+          <span>
+            Posted by {announcement.author.name} on {formatDate(announcement.createdAt)}
+          </span>
         </CardDescription>
         {canManage ? (
           <CardAction className="self-center">

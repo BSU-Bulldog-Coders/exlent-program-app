@@ -1,24 +1,30 @@
 import { FieldSkeleton, InlineSkeleton, StatCardSkeleton } from "@/components/app/skeletons";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProfileSkeleton() {
   return (
     <>
-      <div>
-        <h1 className="text-4xl">Profile</h1>
-        <p className="text-sm text-muted-foreground">
-          <InlineSkeleton className="h-3.5 w-52" />
-        </p>
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-10 rounded-full" />
+        <div>
+          <h1 className="text-4xl">Profile</h1>
+          <p className="text-sm text-muted-foreground">
+            <InlineSkeleton className="h-3.5 w-52" />
+          </p>
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <StatCardSkeleton label="Classes attended" />
         <StatCardSkeleton label="Attendance rate" caption="Since you joined" />
       </div>
       <div className="flex max-w-sm flex-col gap-4">
+        <Skeleton className="size-10 rounded-full" />
         <FieldGroup>
           <FieldSkeleton label="Email" htmlFor="profile-email" />
           <FieldSkeleton label="Name" htmlFor="profile-name" />
+          <FieldSkeleton label="Avatar URL" htmlFor="profile-avatar-url" />
         </FieldGroup>
         <Button className="w-fit" disabled>
           Save

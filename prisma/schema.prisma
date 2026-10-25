@@ -50,6 +50,10 @@ model User {
   name          String
   email         String    @unique
   emailVerified Boolean   @default(false)
+  // User-managed profile photo. Set from the profile page (server action)
+  // or PATCH /api/profile/image; never settable from client input through
+  // the auth API. When null, the frontend renders a DiceBear adventurer
+  // avatar (see lib/avatar.ts).
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { UsersIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { setAttendance } from "@/app/(app)/admin/classes/actions";
+import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -25,7 +26,7 @@ import {
 
 const POLL_MS = 5000;
 
-type Student = { id: string; name: string };
+type Student = { id: string; name: string; image: string | null };
 
 /**
  * Every student with Present / Absent buttons. Absent means no check-in, so the
@@ -129,7 +130,12 @@ export function AttendanceRoster({
               const isPresent = present.has(student.id);
               return (
                 <TableRow key={student.id}>
-                  <TableCell className="font-medium">{student.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <span className="flex items-center gap-3">
+                      <UserAvatar user={student} size="sm" />
+                      {student.name}
+                    </span>
+                  </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
                       <Button
