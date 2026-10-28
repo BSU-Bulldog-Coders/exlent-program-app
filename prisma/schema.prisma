@@ -67,7 +67,6 @@ model User {
   classes      Class[]
   passwordResetRequests PasswordResetRequest[]
   announcementsAuthored Announcement[] @relation("AnnouncementAuthor")
-
   // The saved default used by this admin's announcement composer. It is ignored
   // for students, who never receive the admin management controls.
   announcementEmailDefault Boolean @default(false)
