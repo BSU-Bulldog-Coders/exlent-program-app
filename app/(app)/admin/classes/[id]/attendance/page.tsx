@@ -20,11 +20,11 @@ export default async function TakeAttendancePage(
 
   const [students, attendances] = await Promise.all([
     prisma.user.findMany({
-      where: { role: "STUDENT" },
+      where: { role: "STUDENT", deletionScheduledAt: null },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
-    prisma.attendance.findMany({ where: { classId: id }, select: { userId: true } }),
+    prisma.attendance.findMany({ where: { classId: id, user: { deletionScheduledAt: null } }, select: { userId: true } }),
   ]);
 
   return (

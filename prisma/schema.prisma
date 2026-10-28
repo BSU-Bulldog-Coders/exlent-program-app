@@ -53,6 +53,8 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  deletionScheduledAt DateTime?
+  deletionDueAt       DateTime?
 
   // Never settable from client input (see lib/auth.ts).
   role      Role      @default(STUDENT)
@@ -65,11 +67,11 @@ model User {
   classes      Class[]
   passwordResetRequests PasswordResetRequest[]
   announcementsAuthored Announcement[] @relation("AnnouncementAuthor")
-
   // The saved default used by this admin's announcement composer. It is ignored
   // for students, who never receive the admin management controls.
   announcementEmailDefault Boolean @default(false)
 
+  @@index([deletionDueAt])
   @@map("user")
 }
 
