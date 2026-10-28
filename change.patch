@@ -1,0 +1,71 @@
+diff --git a/lib/attendance-token.ts b/lib/attendance-token.ts
+--- a/lib/attendance-token.ts
++++ b/lib/attendance-token.ts
+@@ -5,6 +5,8 @@
+ /** How long a scanned token stays valid. The QR on screen refreshes more often. */
+ export const ATTENDANCE_TOKEN_TTL_MS = 60_000;
+ export const ATTENDANCE_TOKEN_ROTATE_MS = 30_000;
++/** Grace window for a student who scanned a valid code but must sign in first. */
++export const ATTENDANCE_RESUME_TTL_MS = 5 * 60_000;
+ 
+ function secret() {
+   return process.env.ATTENDANCE_TOKEN_SECRET ?? requireEnv("BETTER_AUTH_SECRET");
+@@ -14,8 +16,12 @@
+   return createHmac("sha256", secret()).update(`attendance:${payload}`).digest("base64url");
+ }
+ 
+-export function createAttendanceToken(classId: string, now = Date.now()) {
+-  const expiresAt = now + ATTENDANCE_TOKEN_TTL_MS;
++export function createAttendanceToken(
++  classId: string,
++  now = Date.now(),
++  ttlMs = ATTENDANCE_TOKEN_TTL_MS,
++) {
++  const expiresAt = now + ttlMs;
+   const payload = Buffer.from(JSON.stringify({ c: classId, e: expiresAt })).toString("base64url");
+   return { token: `${payload}.${sign(payload)}`, expiresAt };
+ }
+diff --git a/app/attend/page.tsx b/app/attend/page.tsx
+--- a/app/attend/page.tsx
++++ b/app/attend/page.tsx
+@@ -4,6 +4,11 @@
+ import { Suspense } from "react";
+ import { CheckIn } from "@/components/classes/check-in";
+ import { Button } from "@/components/ui/button";
++import {
++  ATTENDANCE_RESUME_TTL_MS,
++  createAttendanceToken,
++  verifyAttendanceToken,
++} from "@/lib/attendance-token";
+ import { getCurrentUser, homePathFor } from "@/lib/dal";
+ 
+ export const metadata: Metadata = { title: "Check in" };
+@@ -39,8 +44,26 @@
+ 
+   const user = await getCurrentUser();
+   if (!user) {
+-    // Sign in, then come straight back here: the check-in happens automatically.
+-    redirect(`/login?callbackURL=${encodeURIComponent(`/attend?t=${token}`)}`);
++    // The on-screen code lives ~60s, which is too short to sign in or sign up.
++    // If it was valid at scan time, swap it for a short-lived resume token.
++    const verified = verifyAttendanceToken(token);
++    if (!verified.ok) {
++      return (
++        <Message
++          title={verified.reason === "expired" ? "QR code expired" : "QR code not valid"}
++          body="Scan the QR code on the screen again to check in."
++        />
++      );
++    }
++    const { token: resumeToken } = createAttendanceToken(
++      verified.classId,
++      Date.now(),
++      ATTENDANCE_RESUME_TTL_MS,
++    );
++    // Sign in, then come straight back here: the check-in happens automatically.
++    redirect(
++      `/login?callbackURL=${encodeURIComponent(`/attend?t=${encodeURIComponent(resumeToken)}`)}`,
++    );
+   }
+   if (user.role !== "STUDENT") {
+     return (
