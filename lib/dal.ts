@@ -3,6 +3,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export type Role = "ADMIN" | "STUDENT";
 
@@ -17,6 +18,13 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return null;
   const { id, name, email, role } = session.user as typeof session.user & { role?: string };
+  // Session rows are removed when deletion is scheduled. This extra check
+  // also closes a sign-in race that began just before that revocation.
+  const activeUser = await prisma.user.findFirst({
+    where: { id, deletionScheduledAt: null },
+    select: { id: true },
+  });
+  if (!activeUser) return null;
   return { id, name, email, role: role === "ADMIN" ? "ADMIN" : "STUDENT" };
 });
 

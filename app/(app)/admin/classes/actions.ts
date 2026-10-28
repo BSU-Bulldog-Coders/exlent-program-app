@@ -99,7 +99,7 @@ export async function setAttendance(
 
   const [item, student] = await Promise.all([
     prisma.class.findUnique({ where: { id: classId }, select: { id: true } }),
-    prisma.user.findFirst({ where: { id: userId, role: "STUDENT" }, select: { id: true } }),
+    prisma.user.findFirst({ where: { id: userId, role: "STUDENT", deletionScheduledAt: null }, select: { id: true } }),
   ]);
   if (!item) return { ok: false, error: "Class not found." };
   if (!student) return { ok: false, error: "Student not found." };

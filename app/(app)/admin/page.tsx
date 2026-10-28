@@ -23,7 +23,7 @@ export default function AdminOverviewPage() {
 async function AdminOverviewContent() {
   const admin = await requireAdmin();
   const [students, classCount, openClasses, pendingInvites, recent] = await Promise.all([
-    prisma.user.count({ where: { role: "STUDENT" } }),
+    prisma.user.count({ where: { role: "STUDENT", deletionScheduledAt: null } }),
     prisma.class.count(),
     prisma.class.findMany({ where: { status: "OPEN" }, select: { id: true, name: true } }),
     prisma.invite.count({

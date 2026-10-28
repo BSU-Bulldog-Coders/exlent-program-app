@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { Badge } from "@/components/ui/badge";
-import { PasswordResetButton } from "@/components/people/password-reset-button";
+import { ActiveUserActions } from "@/components/people/user-deletion-actions";
 import { PersonSkeleton } from "@/components/people/person-skeleton";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -33,8 +33,8 @@ export default function PersonPage(props: PageProps<"/admin/people/[id]">) {
 async function PersonContent({ params }: { params: PageProps<"/admin/people/[id]">["params"] }) {
   await requireAdmin();
   const { id } = await params;
-  const person = await prisma.user.findUnique({
-    where: { id },
+  const person = await prisma.user.findFirst({
+    where: { id, deletionScheduledAt: null },
     select: {
       id: true,
       name: true,
@@ -84,7 +84,7 @@ async function PersonContent({ params }: { params: PageProps<"/admin/people/[id]
         </p>
       </div>
       <div>
-        <PasswordResetButton userId={person.id} email={person.email} />
+        <ActiveUserActions userId={person.id} name={person.name} email={person.email} />
       </div>
 
       {isStudent && summary ? (

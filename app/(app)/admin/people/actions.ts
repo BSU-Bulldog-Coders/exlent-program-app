@@ -7,9 +7,11 @@ import { sendInviteEmail } from "@/lib/email";
 import { INVITE_TTL_MS, generateInviteToken, inviteStatus, inviteUrl } from "@/lib/invites";
 import { prisma } from "@/lib/prisma";
 import { requestPasswordReset } from "@/lib/password-reset";
+import { deleteUserNow, scheduleUserDeletion, undoUserDeletion } from "@/lib/user-deletion";
 
 export type InviteResult = { ok: true } | { ok: false; error: string };
 export type PasswordResetResult = { ok: true; active: boolean } | { ok: false; error: string };
+export type UserDeletionResult = { ok: true; status: string } | { ok: false; error: string };
 
 const inviteSchema = z.object({
   email: z.email("Enter a valid email address.").transform((value) => value.toLowerCase()),
@@ -96,12 +98,54 @@ export async function revokeInvite(inviteId: string): Promise<InviteResult> {
 /** Admin-triggered reset uses the same deduplicated issuance service as users. */
 export async function sendPasswordReset(userId: string): Promise<PasswordResetResult> {
   await requireAdmin();
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletionScheduledAt: null },
     select: { email: true },
   });
   if (!user) return { ok: false, error: "This person no longer has an account." };
 
   const result = await requestPasswordReset({ email: user.email });
   return { ok: true, active: result === "active" };
+}
+
+function deletionError(result: string) {
+  switch (result) {
+    case "cannot-delete-self":
+      return "You cannot schedule your own account for deletion.";
+    case "last-admin":
+      return "At least one active administrator must remain.";
+    case "already-scheduled":
+      return "This account is already scheduled for deletion.";
+    case "not-scheduled":
+      return "This account is no longer scheduled for deletion.";
+    default:
+      return "This account no longer exists.";
+  }
+}
+
+export async function scheduleDeletion(userId: string): Promise<UserDeletionResult> {
+  const admin = await requireAdmin();
+  const result = await scheduleUserDeletion(admin, userId);
+  if (result !== "scheduled") return { ok: false, error: deletionError(result) };
+  revalidatePath("/admin/people");
+  revalidatePath(`/admin/people/${userId}`);
+  return { ok: true, status: result };
+}
+
+export async function undoDeletion(userId: string): Promise<UserDeletionResult> {
+  await requireAdmin();
+  const result = await undoUserDeletion(userId);
+  if (result !== "undone") return { ok: false, error: deletionError(result) };
+  revalidatePath("/admin/people");
+  revalidatePath(`/admin/people/${userId}`);
+  return { ok: true, status: result };
+}
+
+export async function permanentlyDeleteUser(userId: string): Promise<UserDeletionResult> {
+  await requireAdmin();
+  const result = await deleteUserNow(userId);
+  if (result !== "deleted") return { ok: false, error: deletionError(result) };
+  revalidatePath("/admin/people");
+  revalidatePath(`/admin/people/${userId}`);
+  return { ok: true, status: result };
 }

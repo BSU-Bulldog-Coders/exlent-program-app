@@ -48,8 +48,8 @@ export function emailRetryDelayMs(attempts: number) {
  */
 export async function requestPasswordReset(input: { email: string }): Promise<PasswordResetRequestResult> {
   const email = input.email.trim().toLowerCase();
-  const candidate = await prisma.user.findUnique({
-    where: { email },
+  const candidate = await prisma.user.findFirst({
+    where: { email, deletionScheduledAt: null },
     select: { id: true },
   });
 
