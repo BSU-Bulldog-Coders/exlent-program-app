@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { CheckIn } from "@/components/classes/check-in";
 import { Button } from "@/components/ui/button";
+import {
+  ATTENDANCE_SIGN_IN_GRACE_MS,
+  createAttendanceToken,
+  verifyAttendanceToken,
+} from "@/lib/attendance-token";
 import { getCurrentUser, homePathFor } from "@/lib/dal";
 
 export const metadata: Metadata = { title: "Check in" };
@@ -40,7 +45,14 @@ async function AttendContent({
   const user = await getCurrentUser();
   if (!user) {
     // Sign in, then come straight back here: the check-in happens automatically.
-    redirect(`/login?callbackURL=${encodeURIComponent(`/attend?t=${token}`)}`);
+    // A valid scan gets a longer-lived token so signing in/up doesn't make it expire.
+    const verified = verifyAttendanceToken(token);
+    const next = verified.ok
+      ? createAttendanceToken(verified.classId, Date.now(), ATTENDANCE_SIGN_IN_GRACE_MS).token
+      : token;
+    redirect(
+      `/login?callbackURL=${encodeURIComponent(`/attend?t=${encodeURIComponent(next)}`)}`,
+    );
   }
   if (user.role !== "STUDENT") {
     return (
