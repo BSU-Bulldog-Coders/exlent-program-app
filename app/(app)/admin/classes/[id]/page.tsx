@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { AttendeeList } from "@/components/classes/attendee-list";
 import { ClassActions } from "@/components/classes/class-actions";
 import { ClassStatusBadge } from "@/components/classes/class-status-badge";
+import { ClassResources } from "@/components/resources/class-resources";
 import { getClassAttendance } from "@/lib/classes";
 import { requireAdmin } from "@/lib/dal";
 import { formatDateTime } from "@/lib/format";
@@ -17,7 +18,11 @@ export default async function AdminClassPage(props: PageProps<"/admin/classes/[i
   const { id } = await props.params;
   const item = await prisma.class.findUnique({ where: { id } });
   if (!item) notFound();
-  const attendance = await getClassAttendance(id);
+  const [attendance, classes, resources] = await Promise.all([
+    getClassAttendance(id),
+    prisma.class.findMany({ orderBy: { startsAt: "desc" }, select: { id: true, name: true } }),
+    prisma.resource.findMany({ where: { classId: id, uploadStatus: "READY" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, description: true, kind: true, originalName: true, youtubeUrl: true } }),
+  ]);
 
   return (
     <>
@@ -27,27 +32,28 @@ export default async function AdminClassPage(props: PageProps<"/admin/classes/[i
       >
         <ArrowLeftIcon className="size-4" /> All classes
       </Link>
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-4xl">{item.name}</h1>
-          <ClassStatusBadge status={item.status} />
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl">{item.name}</h1>
+            <ClassStatusBadge status={item.status} />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {formatDateTime(item.startsAt, item.timezone)} ({item.timezone})
+          </p>
+          {item.description ? (
+            <p className="max-w-prose whitespace-pre-wrap text-sm">{item.description}</p>
+          ) : null}
         </div>
-        <p className="text-sm text-muted-foreground">
-          {formatDateTime(item.startsAt, item.timezone)} ({item.timezone})
-        </p>
-        {item.description ? (
-          <p className="max-w-prose whitespace-pre-wrap text-sm">{item.description}</p>
-        ) : null}
-      </div>
-      <ClassActions
-        data={{
+        <ClassActions data={{
           id: item.id,
           name: item.name,
           description: item.description,
           startsAt: item.startsAt.toISOString(),
           status: item.status,
-        }}
-      />
+        }} />
+      </div>
+      <ClassResources classId={item.id} classes={classes} resources={resources} />
       <AttendeeList
         classId={item.id}
         timezone={item.timezone}

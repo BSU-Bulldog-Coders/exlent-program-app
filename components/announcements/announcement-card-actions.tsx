@@ -14,14 +14,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type EditableAnnouncement = { id: string; title: string; body: string; classId: string | null };
+type EditableAnnouncement = { id: string; title: string; body: string; classId: string | null; resources?: { id: string; title: string }[] };
 
 export function AnnouncementCardActions({
   announcement,
   classes,
+  resources = [],
 }: {
   announcement: EditableAnnouncement;
   classes: AnnouncementClassOption[];
+  resources?: { id: string; title: string }[];
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -63,6 +65,7 @@ export function AnnouncementCardActions({
       </DropdownMenu>
       <AnnouncementFormDialog
         classes={classes}
+        resources={resources}
         defaultEmailRequested={false}
         initial={announcement}
         open={editing}
