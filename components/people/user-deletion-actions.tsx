@@ -28,14 +28,6 @@ import {
 
 type DialogKind = "schedule" | "undo" | "delete-now" | null;
 
-function ActionMenuButton({ disabled = false }: { disabled?: boolean }) {
-  return (
-    <Button size="icon-sm" variant="ghost" disabled={disabled} aria-label="User actions">
-      <DotsThreeIcon weight="bold" />
-    </Button>
-  );
-}
-
 function ConfirmationDialog({
   kind,
   name,
@@ -112,8 +104,14 @@ export function ActiveUserActions({ userId, name, email, deletionScheduled = fal
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<ActionMenuButton disabled={pending} />} />
-        <DropdownMenuContent align="end">
+        <DropdownMenuTrigger
+          render={
+            <Button size="icon-sm" variant="ghost" disabled={pending} aria-label="User actions">
+              <DotsThreeIcon weight="bold" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem onClick={requestReset} disabled={pending}>
             <KeyIcon /> Reset password
           </DropdownMenuItem>
@@ -170,8 +168,14 @@ export function DeletedUserActions({ userId, name, email }: { userId: string; na
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<ActionMenuButton disabled={pending} />} />
-        <DropdownMenuContent align="end">
+        <DropdownMenuTrigger
+          render={
+            <Button size="icon-sm" variant="ghost" disabled={pending} aria-label="User actions">
+              <DotsThreeIcon weight="bold" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem onClick={() => setDialog("undo")} disabled={pending}>
             <ArrowCounterClockwiseIcon /> Undo deletion
           </DropdownMenuItem>
