@@ -15,6 +15,7 @@ const announcementSchema = z.object({
   body: z.string().trim().min(1, "Enter an announcement message.").max(20_000),
   classId: z.string().trim().max(128).nullable(),
   emailRequested: z.boolean(),
+  resourceIds: z.array(z.string().trim().max(128)).default([]),
 });
 
 function normalizeClassId(value: string | null) {
@@ -74,6 +75,12 @@ export async function createAnnouncement(
         },
       },
     });
+    if (values.resourceIds.length) {
+      await tx.resource.updateMany({
+        where: { id: { in: values.resourceIds }, uploadStatus: "READY" },
+        data: { announcementId },
+      });
+    }
     await tx.user.update({
       where: { id: admin.id },
       data: { announcementEmailDefault: values.emailRequested },
@@ -100,9 +107,16 @@ export async function updateAnnouncement(
   const values = { ...parsed.data, classId: normalizeClassId(parsed.data.classId) };
   if (!(await ensureClassExists(values.classId))) return { ok: false, error: "Class not found." };
 
-  const updated = await prisma.announcement.updateMany({
-    where: { id },
-    data: { title: values.title, body: values.body, classId: values.classId },
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.announcement.updateMany({
+      where: { id },
+      data: { title: values.title, body: values.body, classId: values.classId },
+    });
+    if (result.count) {
+      await tx.resource.updateMany({ where: { announcementId: id }, data: { announcementId: null } });
+      if (values.resourceIds.length) await tx.resource.updateMany({ where: { id: { in: values.resourceIds }, uploadStatus: "READY" }, data: { announcementId: id } });
+    }
+    return result;
   });
   if (updated.count === 0) return { ok: false, error: "Announcement not found." };
   revalidateAnnouncements();

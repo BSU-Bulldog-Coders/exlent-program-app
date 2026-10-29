@@ -56,7 +56,7 @@ export function PeopleSkeleton() {
               <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Attendance</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right"><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

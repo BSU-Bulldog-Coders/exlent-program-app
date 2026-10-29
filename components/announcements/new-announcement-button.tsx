@@ -11,14 +11,16 @@ export async function NewAnnouncementButton() {
   const user = await requireUser();
   if (user.role !== "ADMIN") return null;
 
-  const [preference, classes] = await Promise.all([
+  const [preference, classes, resources] = await Promise.all([
     prisma.user.findUnique({ where: { id: user.id }, select: { announcementEmailDefault: true } }),
     prisma.class.findMany({ orderBy: { startsAt: "desc" }, select: { id: true, name: true } }),
+    prisma.resource.findMany({ where: { uploadStatus: "READY" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true } }),
   ]);
 
   return (
     <AnnouncementFormDialog
       classes={classes}
+      resources={resources}
       defaultEmailRequested={preference?.announcementEmailDefault ?? false}
       trigger={<NewAnnouncementTrigger />}
     />
