@@ -30,7 +30,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster richColors />
-      </body>
+        {/* Minimal consent notice for IP/session storage */}
+        <div className="fixed bottom-0 inset-x-0 bg-background/95 border-t text-xs text-center py-2 text-muted-foreground">
+          We store essential session data (IP, user agent) for security. See <a href="/legal/privacy" className="underline">Privacy Policy</a>.
+        </div>      </body>
     </html>
   );
 }

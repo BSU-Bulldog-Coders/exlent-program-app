@@ -10,10 +10,10 @@ export default function LoginPage(props: PageProps<"/login">) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
-        <h1 className="text-3xl">Sign in</h1>
         <p className="text-sm text-muted-foreground">Use your program account.</p>
-      </div>
-      <Suspense>
+        <p className="text-xs text-muted-foreground mt-1">
+          By signing in you agree to the <a href="/legal/terms" className="underline">Terms</a> and <a href="/legal/privacy" className="underline">Privacy Policy</a>.
+        </p>      <Suspense>
         <LoginContent searchParams={props.searchParams} />
       </Suspense>
     </div>
