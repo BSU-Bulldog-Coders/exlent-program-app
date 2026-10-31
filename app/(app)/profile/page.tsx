@@ -34,11 +34,12 @@ async function ProfileContent() {
   return (
     <>
       <div>
-        <h1 className="text-4xl">Profile</h1>
         <p className="text-sm text-muted-foreground">
           {user.role === "ADMIN" ? "Admin" : "Student"} · joined {formatDate(user.createdAt)}
         </p>
-      </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          See our <a href="/legal/privacy" className="underline">Privacy Policy</a> and <a href="/legal/terms" className="underline">Terms of Service</a>.
+        </p>      </div>
       {summary ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <Card>

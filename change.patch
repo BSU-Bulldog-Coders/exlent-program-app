@@ -1,0 +1,185 @@
+diff --git a/app/(app)/profile/page.tsx b/app/(app)/profile/page.tsx
+index 2b7becb85d72addd6d5052a90a67cbfd670dba76..c4f0dc129fd770baef7c5b1075960e373d219a48 100644
+--- a/app/(app)/profile/page.tsx
++++ b/app/(app)/profile/page.tsx
+@@ -34,11 +34,12 @@ async function ProfileContent() {
+   return (
+     <>
+       <div>
+-        <h1 className="text-4xl">Profile</h1>
+         <p className="text-sm text-muted-foreground">
+           {user.role === "ADMIN" ? "Admin" : "Student"} · joined {formatDate(user.createdAt)}
+         </p>
+-      </div>
++        <p className="text-xs text-muted-foreground mt-1">
++          See our <a href="/legal/privacy" className="underline">Privacy Policy</a> and <a href="/legal/terms" className="underline">Terms of Service</a>.
++        </p>      </div>
+       {summary ? (
+         <div className="grid gap-4 sm:grid-cols-2">
+           <Card>
+diff --git a/app/(auth)/login/page.tsx b/app/(auth)/login/page.tsx
+index f4a1bc300e851865cd5d61f21f32e0cf578561c2..a3e512c61897a9b831cf213882aaf3eb29574c9b 100644
+--- a/app/(auth)/login/page.tsx
++++ b/app/(auth)/login/page.tsx
+@@ -10,10 +10,10 @@ export default function LoginPage(props: PageProps<"/login">) {
+   return (
+     <div className="flex flex-col gap-6">
+       <div className="flex flex-col gap-1 text-center">
+-        <h1 className="text-3xl">Sign in</h1>
+         <p className="text-sm text-muted-foreground">Use your program account.</p>
+-      </div>
+-      <Suspense>
++        <p className="text-xs text-muted-foreground mt-1">
++          By signing in you agree to the <a href="/legal/terms" className="underline">Terms</a> and <a href="/legal/privacy" className="underline">Privacy Policy</a>.
++        </p>      <Suspense>
+         <LoginContent searchParams={props.searchParams} />
+       </Suspense>
+     </div>
+diff --git a/app/(auth)/sign-up/page.tsx b/app/(auth)/sign-up/page.tsx
+index 633dc642ada66c36a11232640b903f5a4882f1a4..690550b251b62d828878a36c0977dcd60fa108a7 100644
+--- a/app/(auth)/sign-up/page.tsx
++++ b/app/(auth)/sign-up/page.tsx
+@@ -58,11 +58,12 @@ async function SignUpContent({
+   return (
+     <div className="flex flex-col gap-6">
+       <div className="flex flex-col gap-1 text-center">
+-        <h1 className="text-3xl">Create your account</h1>
+         <p className="text-sm text-muted-foreground">
+           We&apos;ll email you a link to verify your address.
+         </p>
+-      </div>
++        <p className="text-xs text-muted-foreground">
++          By creating an account you agree to the <a href="/legal/terms" className="underline">Terms</a> and <a href="/legal/privacy" className="underline">Privacy Policy</a>.
++        </p>      </div>
+       <SignUpForm callbackURL={callbackURL} />
+     </div>
+   );
+diff --git a/app/(legal)/layout.tsx b/app/(legal)/layout.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..6811e5695c536d30bc6b05bf732eb412944be684
+--- /dev/null
++++ b/app/(legal)/layout.tsx
+@@ -0,0 +1,24 @@
++import Link from "next/link";
++import type { ReactNode } from "react";
++
++export default function LegalLayout({ children }: { children: ReactNode }) {
++  return (
++    <div className="min-h-screen bg-background">
++      <header className="border-b">
++        <div className="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
++          <Link href="/" className="font-semibold">ExLENT Program</Link>
++          <nav className="flex gap-4 text-sm">
++            <Link href="/legal/privacy" className="hover:underline">Privacy</Link>
++            <Link href="/legal/terms" className="hover:underline">Terms</Link>
++          </nav>
++        </div>
++      </header>
++      <main className="mx-auto max-w-3xl px-6 py-12 prose prose-sm dark:prose-invert">
++        {children}
++      </main>
++      <footer className="border-t py-6 text-center text-xs text-muted-foreground">
++        © {new Date().getFullYear()} ExLENT Program
++      </footer>
++    </div>
++  );
++}
+diff --git a/app/(legal)/privacy/page.tsx b/app/(legal)/privacy/page.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..d9b984732c3ade250106b4a58e58e30fadcda737
+--- /dev/null
++++ b/app/(legal)/privacy/page.tsx
+@@ -0,0 +1,41 @@
++import type { Metadata } from "next";
++
++export const metadata: Metadata = { title: "Privacy Policy" };
++
++export default function PrivacyPolicy() {
++  return (
++    <>
++      <h1>Privacy Policy</h1>
++      <p className="text-muted-foreground">Last updated: {new Date().toISOString().slice(0, 10)}</p>
++
++      <h2>1. Information We Collect</h2>
++      <p>We collect the following categories of personal data:</p>
++      <ul>
++        <li><strong>Account data:</strong> name, email address, role (admin/student), verification status.</li>
++        <li><strong>Session & device data:</strong> IP address, user agent (stored in Session records).</li>
++        <li><strong>Program activity:</strong> attendance records, class participation, announcement deliveries (recipient email retained for audit).</li>
++        <li><strong>Optional:</strong> profile image, resource uploads (stored in S3).</li>
++      </ul>
++
++      <h2>2. How We Use Your Data</h2>
++      <p>Data is used to provide the attendance, announcement, and resource management service, enforce authentication, and comply with legal obligations.</p>
++
++      <h2>3. Data Retention & Deletion</h2>
++      <p>Account deletion may be requested by users or performed by admins. A 30-day grace period applies (see <code>deletionScheduledAt</code> / <code>deletionDueAt</code> in the User model). After the grace period, personal data is permanently removed. Session records and delivery logs are retained only as long as necessary for security and audit purposes.</p>
++
++      <h2>4. Third-Party Processors</h2>
++      <ul>
++        <li><strong>Resend</strong> – transactional email delivery (announcements, invites, password resets, verifications).</li>
++        <li><strong>PostgreSQL provider</strong> (Neon/Supabase or equivalent) – primary database.</li>
++        <li><strong>S3-compatible storage</strong> – file resources and uploads.</li>
++      </ul>
++      <p>These processors are contractually bound to process data only on our instructions and to implement appropriate security measures.</p>
++
++      <h2>5. Your Rights</h2>
++      <p>You may request access, correction, or deletion of your personal data by contacting an administrator or using the in-app profile tools. Students may request account deletion; admins manage scheduled deletions via the People section.</p>
++
++      <h2>6. Cookies & Tracking</h2>
++      <p>We use essential session cookies for authentication. No marketing or third-party analytics cookies are set. IP/session data is stored server-side for security.</p>
++    </>
++  );
++}
+diff --git a/app/(legal)/terms/page.tsx b/app/(legal)/terms/page.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..aacef6825c8c492b9342ed425fb56b1617d57297
+--- /dev/null
++++ b/app/(legal)/terms/page.tsx
+@@ -0,0 +1,30 @@
++import type { Metadata } from "next";
++
++export const metadata: Metadata = { title: "Terms of Service" };
++
++export default function TermsOfService() {
++  return (
++    <>
++      <h1>Terms of Service</h1>
++      <p className="text-muted-foreground">Last updated: {new Date().toISOString().slice(0, 10)}</p>
++
++      <h2>1. Acceptance</h2>
++      <p>By creating an account or using the ExLENT Program you agree to these Terms and our Privacy Policy.</p>
++
++      <h2>2. Description of Service</h2>
++      <p>The service provides class management, attendance tracking via QR codes, announcements, and resource sharing for educational programs.</p>
++
++      <h2>3. User Responsibilities</h2>
++      <p>You are responsible for keeping your password secure and for all activity under your account. Do not share accounts or attempt to access data you are not authorized to view.</p>
++
++      <h2>4. Data Processing</h2>
++      <p>We process personal data as described in the Privacy Policy, including 30-day scheduled deletion. By using the service you consent to this processing and to data being transferred to our subprocessors (Resend, database host, S3).</p>
++
++      <h2>5. Termination</h2>
++      <p>We may suspend or terminate accounts that violate these terms. You may delete your account at any time (subject to the 30-day grace period).</p>
++
++      <h2>6. Limitation of Liability</h2>
++      <p>The service is provided "as is". We are not liable for any indirect or consequential damages arising from use of the application.</p>
++    </>
++  );
++}
+diff --git a/app/layout.tsx b/app/layout.tsx
+index 59aa36fd18c2330f286977d38042a0726b1cdd50..f9786cc92f0b0e1b401007d11f801e25b86d2183 100644
+--- a/app/layout.tsx
++++ b/app/layout.tsx
+@@ -30,7 +30,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
+       <body className="min-h-full flex flex-col">
+         <TooltipProvider>{children}</TooltipProvider>
+         <Toaster richColors />
+-      </body>
++        {/* Minimal consent notice for IP/session storage */}
++        <div className="fixed bottom-0 inset-x-0 bg-background/95 border-t text-xs text-center py-2 text-muted-foreground">
++          We store essential session data (IP, user agent) for security. See <a href="/legal/privacy" className="underline">Privacy Policy</a>.
++        </div>      </body>
+     </html>
+   );
+ }

@@ -58,11 +58,12 @@ async function SignUpContent({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
-        <h1 className="text-3xl">Create your account</h1>
         <p className="text-sm text-muted-foreground">
           We&apos;ll email you a link to verify your address.
         </p>
-      </div>
+        <p className="text-xs text-muted-foreground">
+          By creating an account you agree to the <a href="/legal/terms" className="underline">Terms</a> and <a href="/legal/privacy" className="underline">Privacy Policy</a>.
+        </p>      </div>
       <SignUpForm callbackURL={callbackURL} />
     </div>
   );
