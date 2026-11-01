@@ -44,11 +44,10 @@ export default async function AdminClassesPage() {
         />
       </div>
 
-      {classes.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
           No classes yet. Click <span className="font-medium">New</span> to create the first one.
-        </div>
-      ) : (
+          <p className="mt-2 text-xs">Once created, use the QR code on the class page for student attendance.</p>
+        </div>      ) : (
         <div className="rounded-lg border">
           <Table>
             <TableHeader>
