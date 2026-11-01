@@ -25,11 +25,12 @@ export async function AnnouncementFeed() {
 
   return (
     <>
-      {announcements.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
           There are no announcements yet.
-        </div>
-      ) : (
+          {user.role === "ADMIN" && (
+            <p className="mt-2 text-xs">Create classes and post announcements to keep students informed.</p>
+          )}
+        </div>      ) : (
         <div className="grid gap-4">
           {announcements.map((announcement) => (
             <AnnouncementCard

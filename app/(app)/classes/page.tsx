@@ -37,11 +37,10 @@ export default async function StudentClassesPage() {
           Classes you&apos;ve attended. Scan the QR code in class to check in.
         </p>
       </div>
-      {attendances.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
           You haven&apos;t attended any classes yet.
-        </div>
-      ) : (
+          <p className="mt-2 text-xs">Scan the QR code shown by your admin during class to check in automatically.</p>
+        </div>      ) : (
         <div className="rounded-lg border">
           <Table>
             <TableHeader>

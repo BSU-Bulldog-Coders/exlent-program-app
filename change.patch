@@ -1,0 +1,56 @@
+diff --git a/app/(app)/admin/classes/page.tsx b/app/(app)/admin/classes/page.tsx
+index 8dfba2093b02c464069604678325a2656ad6cc67..e621586d6120095ad5dae4ee87bf47824de2e6fd 100644
+--- a/app/(app)/admin/classes/page.tsx
++++ b/app/(app)/admin/classes/page.tsx
+@@ -44,11 +44,10 @@ export default async function AdminClassesPage() {
+         />
+       </div>
+ 
+-      {classes.length === 0 ? (
+         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
+           No classes yet. Click <span className="font-medium">New</span> to create the first one.
+-        </div>
+-      ) : (
++          <p className="mt-2 text-xs">Once created, use the QR code on the class page for student attendance.</p>
++        </div>      ) : (
+         <div className="rounded-lg border">
+           <Table>
+             <TableHeader>
+diff --git a/app/(app)/classes/page.tsx b/app/(app)/classes/page.tsx
+index 2d382839496b2e12ee3fac2bfc3fc4dca24176aa..8a2d4bc8f7836e57535d5cfd911f4b365b1fe5ce 100644
+--- a/app/(app)/classes/page.tsx
++++ b/app/(app)/classes/page.tsx
+@@ -37,11 +37,10 @@ export default async function StudentClassesPage() {
+           Classes you&apos;ve attended. Scan the QR code in class to check in.
+         </p>
+       </div>
+-      {attendances.length === 0 ? (
+         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
+           You haven&apos;t attended any classes yet.
+-        </div>
+-      ) : (
++          <p className="mt-2 text-xs">Scan the QR code shown by your admin during class to check in automatically.</p>
++        </div>      ) : (
+         <div className="rounded-lg border">
+           <Table>
+             <TableHeader>
+diff --git a/components/announcements/announcement-feed.tsx b/components/announcements/announcement-feed.tsx
+index 8e0eb268c97745c9d4438dde7a1e49e3fe529723..5af3abe450c3f013aaa67f7f6ab4ecbd47320988 100644
+--- a/components/announcements/announcement-feed.tsx
++++ b/components/announcements/announcement-feed.tsx
+@@ -25,11 +25,12 @@ export async function AnnouncementFeed() {
+ 
+   return (
+     <>
+-      {announcements.length === 0 ? (
+         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
+           There are no announcements yet.
+-        </div>
+-      ) : (
++          {user.role === "ADMIN" && (
++            <p className="mt-2 text-xs">Create classes and post announcements to keep students informed.</p>
++          )}
++        </div>      ) : (
+         <div className="grid gap-4">
+           {announcements.map((announcement) => (
+             <AnnouncementCard
