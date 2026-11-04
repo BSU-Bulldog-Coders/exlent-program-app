@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-export function ProfileForm({ name, email }: { name: string; email: string }) {
+export function ProfileForm({
+  user,
+}: {
+  user: { name: string; email: string };
+}) {
   const [state, action, pending] = useActionState<ProfileState, FormData>(updateProfile, {});
 
   return (
@@ -14,11 +18,11 @@ export function ProfileForm({ name, email }: { name: string; email: string }) {
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="profile-email">Email</FieldLabel>
-          <Input id="profile-email" value={email} readOnly disabled />
+          <Input id="profile-email" value={user.email} readOnly disabled />
         </Field>
         <Field>
           <FieldLabel htmlFor="profile-name">Name</FieldLabel>
-          <Input id="profile-name" name="name" defaultValue={name} required maxLength={100} />
+          <Input id="profile-name" name="name" defaultValue={user.name} required maxLength={100} />
         </Field>
       </FieldGroup>
       {state.error ? (

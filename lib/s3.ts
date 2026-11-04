@@ -11,9 +11,10 @@ import {
   UploadPartCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { randomUUID } from "node:crypto";
 import { requireEnv } from "@/lib/env";
 
-export const S3_BUCKETS = { resources: "resources" } as const;
+export const S3_BUCKETS = { resources: "resources", avatars: "avatars" } as const;
 export const DIRECT_UPLOAD_LIMIT = 50 * 1024 * 1024;
 export const MAX_RESOURCE_SIZE = 500 * 1024 * 1024;
 export const MULTIPART_PART_SIZE = 10 * 1024 * 1024;
@@ -78,4 +79,32 @@ export function signedGet(key: string, filename: string, download: boolean) {
     Key: key,
     ResponseContentDisposition: `${download ? "attachment" : "inline"}; filename="${safeName}"`,
   }), { expiresIn: 300 });
+}
+
+export function avatarObjectKey(userId: string, extension: string) {
+  return `${userId}/${randomUUID()}.${extension.toLowerCase()}`;
+}
+
+/** Base URL the avatars bucket is publicly readable at (a CDN, or the path-style endpoint). */
+function avatarBaseUrl() {
+  const configured = process.env.AVATARS_PUBLIC_URL;
+  return (configured || `${requireEnv("AWS_ENDPOINT_URL_S3")}/${S3_BUCKETS.avatars}`).replace(/\/$/, "");
+}
+
+export function avatarPublicUrl(key: string) {
+  return `${avatarBaseUrl()}/${key}`;
+}
+
+/** The object key behind a stored avatar URL, or null when it is not one of ours. */
+export function avatarKeyFromUrl(url: string | null | undefined) {
+  const prefix = `${avatarBaseUrl()}/`;
+  return url?.startsWith(prefix) ? url.slice(prefix.length) : null;
+}
+
+export function putAvatarObject(key: string, body: Uint8Array, contentType: string) {
+  return getS3().send(new PutObjectCommand({ Bucket: S3_BUCKETS.avatars, Key: key, Body: body, ContentType: contentType }));
+}
+
+export function deleteAvatarObject(key: string) {
+  return getS3().send(new DeleteObjectCommand({ Bucket: S3_BUCKETS.avatars, Key: key }));
 }

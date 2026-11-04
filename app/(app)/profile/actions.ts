@@ -17,7 +17,10 @@ export async function updateProfile(
   const parsed = schema.safeParse({ name: formData.get("name") });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  await prisma.user.update({ where: { id: user.id }, data: { name: parsed.data.name } });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { name: parsed.data.name },
+  });
   revalidatePath("/", "layout");
   return { saved: true };
 }

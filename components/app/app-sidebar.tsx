@@ -36,7 +36,12 @@ export function AppSidebar({ user }: { user: CurrentUser }) {
         <NavLinks role={user.role} />
       </SidebarContent>
       <SidebarFooter>
-        <UserMenu name={user.name} email={user.email} />
+        <UserMenu
+          id={user.id}
+          name={user.name}
+          email={user.email}
+          image={user.image}
+        />
       </SidebarFooter>
     </Sidebar>
   );

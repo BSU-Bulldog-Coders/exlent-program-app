@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { UserCheckIcon, UsersIcon } from "@phosphor-icons/react";
+import { UserAvatar } from "@/components/app/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Empty,
@@ -22,8 +23,19 @@ import {
 import { formatTime } from "@/lib/format";
 
 export type AttendanceData = {
-  attendees: { userId: string; name: string; email: string; checkedInAt: string }[];
-  absent: { userId: string; name: string; email: string }[];
+  attendees: {
+    userId: string;
+    name: string;
+    email: string;
+    image: string | null;
+    checkedInAt: string;
+  }[];
+  absent: {
+    userId: string;
+    name: string;
+    email: string;
+    image: string | null;
+  }[];
 };
 
 const POLL_MS = 5000;
@@ -88,9 +100,19 @@ export function AttendeeList({
           <ul className="divide-y">
             {data.attendees.map((person) => (
               <li key={person.userId} className="flex items-center justify-between gap-4 py-3 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{person.name}</p>
-                  <p className="truncate text-muted-foreground">{person.email}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <UserAvatar
+                    user={{
+                      id: person.userId,
+                      name: person.name,
+                      image: person.image,
+                    }}
+                    size="sm"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{person.name}</p>
+                    <p className="truncate text-muted-foreground">{person.email}</p>
+                  </div>
                 </div>
                 <span className="shrink-0 text-muted-foreground">
                   {formatTime(person.checkedInAt, timezone)}
@@ -150,7 +172,19 @@ export function AttendeeList({
               <TableBody>
                 {data.attendees.map((person) => (
                   <TableRow key={person.userId}>
-                    <TableCell className="font-medium">{person.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="flex items-center gap-3">
+                        <UserAvatar
+                          user={{
+                            id: person.userId,
+                            name: person.name,
+                                  image: person.image,
+                          }}
+                          size="sm"
+                        />
+                        {person.name}
+                      </span>
+                    </TableCell>
                     <TableCell>{person.email}</TableCell>
                     <TableCell className="text-right">
                       {formatTime(person.checkedInAt, timezone)}
@@ -187,7 +221,19 @@ export function AttendeeList({
                 <TableBody>
                   {data.absent.map((person) => (
                     <TableRow key={person.userId}>
-                      <TableCell className="font-medium">{person.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <span className="flex items-center gap-3">
+                          <UserAvatar
+                            user={{
+                              id: person.userId,
+                              name: person.name,
+                                      image: person.image,
+                            }}
+                            size="sm"
+                          />
+                          {person.name}
+                        </span>
+                      </TableCell>
                       <TableCell>{person.email}</TableCell>
                     </TableRow>
                   ))}

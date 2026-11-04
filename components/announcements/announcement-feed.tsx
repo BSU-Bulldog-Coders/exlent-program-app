@@ -12,7 +12,7 @@ export async function AnnouncementFeed() {
       body: true,
       classId: true,
       createdAt: true,
-      author: { select: { name: true } },
+      author: { select: { id: true, name: true, image: true } },
       class: { select: { name: true } },
       resources: { where: { uploadStatus: "READY" }, select: { id: true, title: true, kind: true, youtubeUrl: true } },
     },

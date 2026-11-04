@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProfileForm } from "@/components/app/profile-form";
+import { ProfileAvatar } from "@/components/app/profile-avatar";
 import { ChangePasswordForm } from "@/components/app/change-password-form";
 import { ProfileSkeleton } from "@/components/app/profile-skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,7 @@ async function ProfileContent() {
   const current = await requireUser();
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: current.id },
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, createdAt: true, image: true },
   });
   const summary =
     user.role === "STUDENT"
@@ -33,11 +34,14 @@ async function ProfileContent() {
 
   return (
     <>
-      <div>
-        <h1 className="text-4xl">Profile</h1>
-        <p className="text-sm text-muted-foreground">
-          {user.role === "ADMIN" ? "Admin" : "Student"} · joined {formatDate(user.createdAt)}
-        </p>
+      <div className="flex items-center gap-4">
+        <ProfileAvatar user={user} />
+        <div>
+          <h1 className="text-4xl">Profile</h1>
+          <p className="text-sm text-muted-foreground">
+            {user.role === "ADMIN" ? "Admin" : "Student"} · joined {formatDate(user.createdAt)}
+          </p>
+        </div>
       </div>
       {summary ? (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -61,7 +65,7 @@ async function ProfileContent() {
           </Card>
         </div>
       ) : null}
-      <ProfileForm name={user.name} email={user.email} />
+      <ProfileForm user={user} />
       <ChangePasswordForm />
     </>
   );

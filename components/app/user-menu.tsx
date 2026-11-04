@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CaretUpDownIcon, SignOutIcon, UserIcon } from "@phosphor-icons/react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/app/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,16 +15,17 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
-
-export function UserMenu({ name, email }: { name: string; email: string }) {
+export function UserMenu({
+  name,
+  email,
+  image,
+  id,
+}: {
+  name: string;
+  email: string;
+  image?: string | null;
+  id?: string;
+}) {
   const router = useRouter();
 
   async function signOut() {
@@ -38,9 +39,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
-            <Avatar className="size-8">
-              <AvatarFallback>{initials(name) || "?"}</AvatarFallback>
-            </Avatar>
+            <UserAvatar user={{ id, name, image: image ?? null }} className="size-8" />
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{name}</span>
               <span className="truncate text-xs text-sidebar-foreground/60">{email}</span>

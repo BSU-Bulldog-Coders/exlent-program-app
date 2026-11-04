@@ -12,12 +12,16 @@ export type CurrentUser = {
   name: string;
   email: string;
   role: Role;
+  image: string | null;
 };
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return null;
-  const { id, name, email, role } = session.user as typeof session.user & { role?: string };
+  const { id, name, email, role, image } = session.user as typeof session.user & {
+    role?: string;
+    image?: string | null;
+  };
   // Session rows are removed when deletion is scheduled. This extra check
   // also closes a sign-in race that began just before that revocation.
   const activeUser = await prisma.user.findFirst({
@@ -25,7 +29,13 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     select: { id: true },
   });
   if (!activeUser) return null;
-  return { id, name, email, role: role === "ADMIN" ? "ADMIN" : "STUDENT" };
+  return {
+    id,
+    name,
+    email,
+    role: role === "ADMIN" ? "ADMIN" : "STUDENT",
+    image: image ?? null,
+  };
 });
 
 /** Redirects to /login (preserving where the user was headed) when signed out. */
