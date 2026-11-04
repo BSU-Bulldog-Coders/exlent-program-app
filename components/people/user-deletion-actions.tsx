@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ArrowCounterClockwiseIcon, DotsThreeIcon, KeyIcon, TrashIcon } from "@phosphor-icons/react";
+import { ArrowCounterClockwiseIcon, DotsThreeIcon, KeyIcon, StarIcon, TrashIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import {
   permanentlyDeleteUser,
@@ -9,6 +9,7 @@ import {
   sendPasswordReset,
   undoDeletion,
 } from "@/app/(app)/admin/people/actions";
+import { ManagePointsDialog } from "@/components/people/manage-points-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -71,13 +72,16 @@ function ConfirmationDialog({
   );
 }
 
-export function ActiveUserActions({ userId, name, email, deletionScheduled = false }: {
+export function ActiveUserActions({ userId, name, email, deletionScheduled = false, score }: {
   userId: string;
+  /** Passed for students only; shows the Manage points action. */
+  score?: number;
   name: string;
   email: string;
   deletionScheduled?: boolean;
 }) {
   const [dialog, setDialog] = useState<DialogKind>(null);
+  const [pointsOpen, setPointsOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function requestReset() {
@@ -115,6 +119,11 @@ export function ActiveUserActions({ userId, name, email, deletionScheduled = fal
           <DropdownMenuItem onClick={requestReset} disabled={pending}>
             <KeyIcon /> Reset password
           </DropdownMenuItem>
+          {score !== undefined ? (
+            <DropdownMenuItem onClick={() => setPointsOpen(true)} disabled={pending}>
+              <StarIcon /> Manage points
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
@@ -133,6 +142,15 @@ export function ActiveUserActions({ userId, name, email, deletionScheduled = fal
         onConfirm={confirmSchedule}
         pending={pending}
       />
+      {score !== undefined ? (
+        <ManagePointsDialog
+          open={pointsOpen}
+          onOpenChange={setPointsOpen}
+          userId={userId}
+          name={name}
+          score={score}
+        />
+      ) : null}
     </>
   );
 }

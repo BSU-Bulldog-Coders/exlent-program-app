@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AnnouncementFeed } from "@/components/announcements/announcement-feed";
 import { AnnouncementFeedSkeleton } from "@/components/announcements/announcement-feed-skeleton";
-import { LeaderboardPlaceholder } from "@/components/announcements/leaderboard-placeholder";
+import { TopLeaderboard, TopLeaderboardSkeleton } from "@/components/leaderboard/top-leaderboard";
 import { NewAnnouncementButton } from "@/components/announcements/new-announcement-button";
 
 export const metadata: Metadata = { title: "Home" };
@@ -24,7 +24,9 @@ export default function HomePage() {
           <AnnouncementFeed />
         </Suspense>
       </div>
-      <LeaderboardPlaceholder />
+      <Suspense fallback={<TopLeaderboardSkeleton />}>
+        <TopLeaderboard />
+      </Suspense>
     </div>
   );
 }

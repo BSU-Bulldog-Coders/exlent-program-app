@@ -85,8 +85,13 @@ model User {
   // The saved default used by this admin's announcement composer. It is ignored
   // for students, who never receive the admin management controls.
   announcementEmailDefault Boolean @default(false)
+  // Leaderboard points. Only changed through adjustScore (lib/leaderboard.ts),
+  // which clamps to 0..32767.
+  totalScore Int @default(0) @map("total_score") @db.SmallInt
+  scoreAdjustments ScoreAdjustment[]
 
   @@index([deletionDueAt])
+  @@index([totalScore(sort: Desc)])
   @@map("user")
 }
 
@@ -293,4 +298,20 @@ model Attendance {
 
   @@unique([classId, userId])
   @@index([userId])
+}
+
+// One row per admin points change. The unique idempotencyKey makes retries and
+// double submits no-ops that return the original result.
+model ScoreAdjustment {
+  id             String   @id @default(cuid())
+  idempotencyKey String   @unique
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminId        String
+  delta          Int
+  resultingScore Int      @db.SmallInt
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("score_adjustment")
 }

@@ -40,7 +40,7 @@ async function PeopleContent() {
     prisma.user.findMany({
       where: { deletionScheduledAt: null },
       orderBy: { createdAt: "desc" },
-      select: { id: true, name: true, email: true, role: true, emailVerified: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, emailVerified: true, createdAt: true, totalScore: true },
     }),
     prisma.user.findMany({
       where: { deletionScheduledAt: { not: null } },
@@ -96,7 +96,7 @@ async function PeopleContent() {
                         {rate === null ? "–" : `${rate}% (${summary?.attended}/${summary?.eligible})`}
                       </TableCell>
                       <TableCell className="text-right">
-                        <ActiveUserActions userId={student.id} name={student.name} email={student.email} />
+                        <ActiveUserActions userId={student.id} name={student.name} email={student.email} score={student.totalScore} />
                       </TableCell>
                     </TableRow>
                   );
