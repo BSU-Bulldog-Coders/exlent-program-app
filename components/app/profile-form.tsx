@@ -2,15 +2,14 @@
 
 import { useActionState } from "react";
 import { updateProfile, type ProfileState } from "@/app/(app)/profile/actions";
-import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
 export function ProfileForm({
   user,
 }: {
-  user: { id: string; name: string; email: string; image: string | null };
+  user: { name: string; email: string };
 }) {
   const [state, action, pending] = useActionState<ProfileState, FormData>(updateProfile, {});
 
@@ -18,31 +17,12 @@ export function ProfileForm({
     <form action={action} className="flex max-w-sm flex-col gap-4">
       <FieldGroup>
         <Field>
-          <FieldLabel>Avatar</FieldLabel>
-          <UserAvatar user={user} size="lg" />
-          <FieldDescription>
-            Leave the URL blank to remove your photo and use a generated DiceBear adventurer
-            avatar instead.
-          </FieldDescription>
-        </Field>
-        <Field>
           <FieldLabel htmlFor="profile-email">Email</FieldLabel>
           <Input id="profile-email" value={user.email} readOnly disabled />
         </Field>
         <Field>
           <FieldLabel htmlFor="profile-name">Name</FieldLabel>
           <Input id="profile-name" name="name" defaultValue={user.name} required maxLength={100} />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="profile-image-url">Profile image URL</FieldLabel>
-          <Input
-            id="profile-image-url"
-            name="image"
-            defaultValue={user.image ?? ""}
-            placeholder="https://…"
-            maxLength={500}
-            inputMode="url"
-          />
         </Field>
       </FieldGroup>
       {state.error ? (

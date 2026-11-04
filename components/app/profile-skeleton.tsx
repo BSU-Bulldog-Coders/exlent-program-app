@@ -7,7 +7,7 @@ export function ProfileSkeleton() {
   return (
     <>
       <div className="flex items-center gap-4">
-        <Skeleton className="size-10 rounded-full" />
+        <Skeleton className="size-20 rounded-full" />
         <div>
           <h1 className="text-4xl">Profile</h1>
           <p className="text-sm text-muted-foreground">
@@ -20,11 +20,9 @@ export function ProfileSkeleton() {
         <StatCardSkeleton label="Attendance rate" caption="Since you joined" />
       </div>
       <div className="flex max-w-sm flex-col gap-4">
-        <Skeleton className="size-10 rounded-full" />
         <FieldGroup>
           <FieldSkeleton label="Email" htmlFor="profile-email" />
           <FieldSkeleton label="Name" htmlFor="profile-name" />
-          <FieldSkeleton label="Avatar URL" htmlFor="profile-avatar-url" />
         </FieldGroup>
         <Button className="w-fit" disabled>
           Save

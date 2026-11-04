@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProfileForm } from "@/components/app/profile-form";
-import { UserAvatar } from "@/components/app/user-avatar";
+import { ProfileAvatar } from "@/components/app/profile-avatar";
 import { ChangePasswordForm } from "@/components/app/change-password-form";
 import { ProfileSkeleton } from "@/components/app/profile-skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ async function ProfileContent() {
   return (
     <>
       <div className="flex items-center gap-4">
-        <UserAvatar user={user} size="lg" />
+        <ProfileAvatar user={user} />
         <div>
           <h1 className="text-4xl">Profile</h1>
           <p className="text-sm text-muted-foreground">

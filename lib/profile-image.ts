@@ -1,26 +1,37 @@
-/** Shared validation for a user-managed profile image URL.
+/** Shared validation for an uploaded profile image.
 
- * Used by both the profile server action and PATCH /api/profile/image so
- * the two ways of updating the image accept exactly the same values.
- * A blank value clears the image (back to the DiceBear fallback).
+ * Used by PATCH /api/profile/image and by the ProfileAvatar component, so the
+ * browser rejects exactly what the server would reject.
  */
 
-export type ProfileImageResult = string | null | { error: string };
+export const MAX_AVATAR_SIZE = 10 * 1024 * 1024;
 
-export function parseProfileImageUrl(value: unknown): ProfileImageResult {
-  if (value === null || value === undefined) return null;
-  if (typeof value !== "string") return { error: "Enter a valid profile image URL, or leave it blank." };
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  if (trimmed.length > 500) return { error: "Profile image URL is too long." };
-  let url: URL;
-  try {
-    url = new URL(trimmed);
-  } catch {
-    return { error: "Enter a valid profile image URL, or leave it blank." };
+// SVG is deliberately absent: it can carry script.
+const IMAGE_EXTENSIONS: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/avif": "avif",
+};
+
+export type AvatarFileResult =
+  | { file: File; extension: string }
+  | { error: string; status: 400 | 413 | 415 };
+
+export function validateAvatarFile(file: unknown): AvatarFileResult {
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Attach an image file in the \"image\" field.", status: 400 };
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    return { error: "Profile image URL must start with http:// or https://." };
+  if (!file.type.startsWith("image/")) {
+    return { error: "Only image files can be used as an avatar.", status: 415 };
   }
-  return trimmed;
+  const extension = IMAGE_EXTENSIONS[file.type];
+  if (!extension) {
+    return { error: "Use a PNG, JPEG, WebP, GIF or AVIF image.", status: 415 };
+  }
+  if (file.size > MAX_AVATAR_SIZE) {
+    return { error: "Avatar images can be at most 10 MB.", status: 413 };
+  }
+  return { file, extension };
 }

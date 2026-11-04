@@ -2,7 +2,7 @@
 
  * Priority:
  * 1. The user's `image` (the existing User column, managed from the
- *    profile page or PATCH /api/profile/image).
+ *    profile page avatar upload or PATCH /api/profile/image).
  * 2. A generated DiceBear adventurer avatar, seeded deterministically from
  *    the user's id (or name when no id is available) so the same person
  *    always gets the same avatar. The seed is an opaque id, never an email.
