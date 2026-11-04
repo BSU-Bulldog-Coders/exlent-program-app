@@ -17,7 +17,7 @@ export type ClassAttendance = {
 export async function getClassAttendance(classId: string): Promise<ClassAttendance> {
   const [attendances, students] = await Promise.all([
     prisma.attendance.findMany({
-      where: { classId },
+      where: { classId, user: { deletionScheduledAt: null } },
       orderBy: { checkedInAt: "desc" },
       select: {
         checkedInAt: true,
@@ -25,7 +25,7 @@ export async function getClassAttendance(classId: string): Promise<ClassAttendan
       },
     }),
     prisma.user.findMany({
-      where: { role: "STUDENT" },
+      where: { role: "STUDENT", deletionScheduledAt: null },
       orderBy: { name: "asc" },
       select: { id: true, name: true, email: true, image: true },
     }),

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PeopleTabs } from "@/components/people/people-tabs";
 import { InviteRowActions } from "@/components/people/invite-row-actions";
-import { PasswordResetButton } from "@/components/people/password-reset-button";
+import { ActiveUserActions, DeletedUserActions } from "@/components/people/user-deletion-actions";
 import { PeopleHeader } from "@/components/people/people-header";
 import { PeopleSkeleton } from "@/components/people/people-skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -36,10 +36,16 @@ export default function PeoplePage() {
 
 async function PeopleContent() {
   await requireAdmin();
-  const [users, openInvites] = await Promise.all([
+  const [users, deletedUsers, openInvites] = await Promise.all([
     prisma.user.findMany({
+      where: { deletionScheduledAt: null },
       orderBy: { createdAt: "desc" },
       select: { id: true, name: true, email: true, role: true, emailVerified: true, createdAt: true },
+    }),
+    prisma.user.findMany({
+      where: { deletionScheduledAt: { not: null } },
+      orderBy: { deletionDueAt: "asc" },
+      select: { id: true, name: true, email: true, role: true, deletionDueAt: true },
     }),
     prisma.invite.findMany({
       where: { acceptedAt: null, revokedAt: null },
@@ -54,6 +60,7 @@ async function PeopleContent() {
       <PeopleTabs
         studentCount={students.length}
         adminCount={admins.length}
+        deletedCount={deletedUsers.length}
         students={
           <div className="rounded-lg border">
             <Table>
@@ -64,7 +71,7 @@ async function PeopleContent() {
                   <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Attendance</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right"><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -89,7 +96,7 @@ async function PeopleContent() {
                         {rate === null ? "–" : `${rate}% (${summary?.attended}/${summary?.eligible})`}
                       </TableCell>
                       <TableCell className="text-right">
-                        <PasswordResetButton userId={student.id} email={student.email} />
+                        <ActiveUserActions userId={student.id} name={student.name} email={student.email} />
                       </TableCell>
                     </TableRow>
                   );
@@ -115,7 +122,7 @@ async function PeopleContent() {
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right"><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -132,11 +139,46 @@ async function PeopleContent() {
                     </TableCell>
                     <TableCell>{formatDate(admin.createdAt)}</TableCell>
                     <TableCell className="text-right">
-                      <PasswordResetButton userId={admin.id} email={admin.email} />
+                      <ActiveUserActions userId={admin.id} name={admin.name} email={admin.email} />
                     </TableCell>
                   </TableRow>
                 ))}
                 <InviteRows invites={openInvites.filter((i) => i.role === "ADMIN")} colSpan={5} />
+              </TableBody>
+            </Table>
+          </div>
+        }
+        deleted={
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Deletes on</TableHead>
+                  <TableHead className="text-right"><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {deletedUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell><Badge variant="outline">{user.role === "ADMIN" ? "Admin" : "Student"}</Badge></TableCell>
+                    <TableCell>{user.deletionDueAt ? formatDate(user.deletionDueAt) : "–"}</TableCell>
+                    <TableCell className="text-right">
+                      <DeletedUserActions userId={user.id} name={user.name} email={user.email} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {deletedUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      No accounts are scheduled for deletion.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
               </TableBody>
             </Table>
           </div>

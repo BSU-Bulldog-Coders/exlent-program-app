@@ -5,7 +5,7 @@ import { InviteDialog } from "@/components/people/invite-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type Tab = "students" | "admins";
+type Tab = "students" | "admins" | "deleted";
 
 /**
  * Tabs and the invite button share one row. The button depends on the active
@@ -15,13 +15,17 @@ type Tab = "students" | "admins";
 export function PeopleTabs({
   studentCount,
   adminCount,
+  deletedCount,
   students,
   admins,
+  deleted,
 }: {
   studentCount: number;
   adminCount: number;
+  deletedCount: number;
   students: ReactNode;
   admins: ReactNode;
+  deleted: ReactNode;
 }) {
   const [tab, setTab] = useState<Tab>("students");
 
@@ -41,11 +45,18 @@ export function PeopleTabs({
               {adminCount}
             </Badge>
           </TabsTrigger>
+          <TabsTrigger value="deleted">
+            Deleted Users
+            <Badge variant="outline" className="h-5 min-w-5 px-1.5 text-xs">
+              {deletedCount}
+            </Badge>
+          </TabsTrigger>
         </TabsList>
-        <InviteDialog role={tab === "students" ? "STUDENT" : "ADMIN"} />
+        {tab === "deleted" ? null : <InviteDialog role={tab === "students" ? "STUDENT" : "ADMIN"} />}
       </div>
       <TabsContent value="students">{students}</TabsContent>
       <TabsContent value="admins">{admins}</TabsContent>
+      <TabsContent value="deleted">{deleted}</TabsContent>
     </Tabs>
   );
 }

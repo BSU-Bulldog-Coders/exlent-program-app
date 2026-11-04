@@ -4,6 +4,7 @@ import {
   StatCardSkeleton,
   TableSkeleton,
 } from "@/components/app/skeletons";
+import { DotsThreeIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -23,8 +24,8 @@ export function PersonSkeleton() {
         </p>
       </div>
       <div>
-        <Button size="sm" variant="outline" disabled>
-          Reset password
+        <Button size="icon-sm" variant="ghost" disabled aria-label="User actions">
+          <DotsThreeIcon weight="bold" />
         </Button>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

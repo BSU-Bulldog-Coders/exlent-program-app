@@ -1,4 +1,4 @@
-import { ListChecksIcon, PencilSimpleIcon } from "@phosphor-icons/react/ssr";
+import { CaretDownIcon, ListChecksIcon, PlusIcon } from "@phosphor-icons/react/ssr";
 import { BackLinkSkeleton, InlineSkeleton, TableSkeleton } from "@/components/app/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,27 +9,33 @@ export default function Loading() {
   return (
     <>
       <BackLinkSkeleton label="All classes" />
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-4xl">
-            <InlineSkeleton className="h-[0.75em] w-56" />
-          </h1>
-          <Skeleton className="h-6 w-16 rounded-full" />
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl">
+              <InlineSkeleton className="h-[0.75em] w-56" />
+            </h1>
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            <InlineSkeleton className="h-3.5 w-64" />
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          <InlineSkeleton className="h-3.5 w-64" />
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button disabled>
+        <div className="flex shrink-0">
+          <Button className="rounded-r-none" disabled>
           <ListChecksIcon data-icon="inline-start" />
           Take attendance
-        </Button>
-        <Button variant="outline" disabled>
-          <PencilSimpleIcon data-icon="inline-start" />
-          Edit
-        </Button>
+          </Button>
+          <Button className="rounded-l-none border-l-border/50 px-3" disabled><CaretDownIcon /></Button>
+        </div>
       </div>
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-4">
+          <div><h2 className="text-2xl">Resources</h2><p className="text-sm text-muted-foreground">Materials shared for this class.</p></div>
+          <Button disabled><PlusIcon data-icon="inline-start" />Upload resource</Button>
+        </div>
+        <Skeleton className="h-28 w-full" />
+      </section>
       <Tabs defaultValue="checked-in" className="gap-4">
         <TabsList>
           <TabsTrigger value="checked-in">

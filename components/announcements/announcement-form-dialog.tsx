@@ -21,10 +21,12 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
 export type AnnouncementClassOption = { id: string; name: string };
-type InitialAnnouncement = { id: string; title: string; body: string; classId: string | null };
+export type AnnouncementResourceOption = { id: string; title: string };
+type InitialAnnouncement = { id: string; title: string; body: string; classId: string | null; resources?: AnnouncementResourceOption[] };
 
 export function AnnouncementFormDialog({
   classes,
+  resources = [],
   defaultEmailRequested,
   initial,
   trigger,
@@ -32,6 +34,7 @@ export function AnnouncementFormDialog({
   onOpenChange,
 }: {
   classes: AnnouncementClassOption[];
+  resources?: AnnouncementResourceOption[];
   defaultEmailRequested: boolean;
   initial?: InitialAnnouncement;
   trigger?: React.ReactElement;
@@ -46,6 +49,7 @@ export function AnnouncementFormDialog({
   const [body, setBody] = useState(initial?.body ?? "");
   const [classId, setClassId] = useState(initial?.classId ?? "");
   const [emailRequested, setEmailRequested] = useState(defaultEmailRequested);
+  const [resourceIds, setResourceIds] = useState<string[]>(initial?.resources?.map((resource) => resource.id) ?? []);
   const open = controlledOpen ?? uncontrolledOpen;
 
   function reset() {
@@ -53,6 +57,7 @@ export function AnnouncementFormDialog({
     setBody(initial?.body ?? "");
     setClassId(initial?.classId ?? "");
     setEmailRequested(initial ? false : defaultEmailRequested);
+    setResourceIds(initial?.resources?.map((resource) => resource.id) ?? []);
     setError(null);
   }
 
@@ -66,7 +71,7 @@ export function AnnouncementFormDialog({
     event.preventDefault();
     setError(null);
     startTransition(async () => {
-      const input = { title, body, classId: classId || null, emailRequested };
+      const input = { title, body, classId: classId || null, emailRequested, resourceIds };
       if (initial) {
         const result = await updateAnnouncement(initial.id, input);
         if (!result.ok) {
@@ -131,6 +136,13 @@ export function AnnouncementFormDialog({
             <Field>
               <FieldLabel htmlFor="announcement-body">Message</FieldLabel>
               <MarkdownComposer value={body} onChange={setBody} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="announcement-resources">Resources (optional)</FieldLabel>
+              <select id="announcement-resources" multiple value={resourceIds} onChange={(event) => setResourceIds(Array.from(event.currentTarget.selectedOptions, (option) => option.value))} className="min-h-24 w-full rounded-lg border bg-transparent p-2 text-sm">
+                {resources.map((resource) => <option key={resource.id} value={resource.id}>{resource.title}</option>)}
+              </select>
+              <p className="text-xs text-muted-foreground">Choose existing resources to display below this announcement.</p>
             </Field>
             {!initial ? (
               <Field orientation="horizontal" className="items-center justify-between rounded-lg border p-3">

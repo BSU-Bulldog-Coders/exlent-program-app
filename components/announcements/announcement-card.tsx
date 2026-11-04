@@ -7,6 +7,8 @@ import { MarkdownContent } from "@/components/announcements/markdown-content";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { FileArrowDownIcon, LinkIcon } from "@phosphor-icons/react/ssr";
 
 export type AnnouncementCardData = {
   id: string;
@@ -16,15 +18,18 @@ export type AnnouncementCardData = {
   createdAt: Date;
   author: { id: string; name: string; image: string | null };
   class: { name: string } | null;
+  resources?: { id: string; title: string; kind: "FILE" | "YOUTUBE"; youtubeUrl: string | null }[];
 };
 
 export function AnnouncementCard({
   announcement,
   classes,
+  resources,
   canManage = false,
 }: {
   announcement: AnnouncementCardData;
   classes?: AnnouncementClassOption[];
+  resources?: { id: string; title: string }[];
   canManage?: boolean;
 }) {
   return (
@@ -39,7 +44,7 @@ export function AnnouncementCard({
         </CardDescription>
         {canManage ? (
           <CardAction className="self-center">
-            <AnnouncementCardActions announcement={announcement} classes={classes ?? []} />
+            <AnnouncementCardActions announcement={announcement} classes={classes ?? []} resources={resources ?? []} />
           </CardAction>
         ) : null}
         {announcement.class && announcement.classId ? (
@@ -55,6 +60,7 @@ export function AnnouncementCard({
       </CardHeader>
       <CardContent>
         <MarkdownContent body={announcement.body} />
+        {announcement.resources?.length ? <div className="mt-4 flex flex-wrap gap-2">{announcement.resources.map((resource) => resource.kind === "FILE" ? <Button key={resource.id} size="sm" variant="outline" render={<a href={`/api/resources/${resource.id}/file?download=1`}><FileArrowDownIcon data-icon="inline-start" />{resource.title}</a>} /> : <Button key={resource.id} size="sm" variant="outline" render={<a href={resource.youtubeUrl ?? "#"} target="_blank" rel="noreferrer"><LinkIcon data-icon="inline-start" />{resource.title}</a>} />)}</div> : null}
       </CardContent>
     </Card>
   );

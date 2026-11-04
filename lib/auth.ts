@@ -32,6 +32,9 @@ export const auth = betterAuth({
     },
   },
   user: {
+    // Account removal is admin-managed through the 30-day lifecycle; Better
+    // Auth's direct self-service deletion endpoint must remain unavailable.
+    deleteUser: { enabled: false },
     additionalFields: {
       // input: false means clients can never set these through the auth API.
       // Public sign-up therefore always yields a STUDENT.
@@ -41,9 +44,17 @@ export const auth = betterAuth({
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
-      if (ctx.path !== "/sign-up/email") return;
       const email = typeof ctx.body?.email === "string" ? ctx.body.email : "";
-      if (email && (await hasPendingInvite(email))) {
+      if (ctx.path === "/sign-in/email" && email) {
+        const scheduled = await prisma.user.findFirst({
+          where: { email: email.toLowerCase(), deletionScheduledAt: { not: null } },
+          select: { id: true },
+        });
+        if (scheduled) {
+          throw new APIError("UNAUTHORIZED", { message: "Invalid email or password." });
+        }
+      }
+      if (ctx.path === "/sign-up/email" && email && (await hasPendingInvite(email))) {
         throw new APIError("BAD_REQUEST", {
           message: "You've been invited. Use the link in your invitation email to sign up.",
         });

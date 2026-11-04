@@ -1,4 +1,4 @@
-import { UserPlusIcon } from "@phosphor-icons/react/ssr";
+import { DotsThreeIcon, UserPlusIcon } from "@phosphor-icons/react/ssr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,6 +34,12 @@ export function PeopleSkeleton() {
               <Skeleton className="h-2.5 w-2.5 rounded-full" />
             </Badge>
           </TabsTrigger>
+          <TabsTrigger value="deleted">
+            Deleted Users
+            <Badge variant="outline" className="h-5 min-w-5 px-1.5">
+              <Skeleton className="h-2.5 w-2.5 rounded-full" />
+            </Badge>
+          </TabsTrigger>
         </TabsList>
         <Button disabled>
           <UserPlusIcon data-icon="inline-start" />
@@ -50,7 +56,7 @@ export function PeopleSkeleton() {
               <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Attendance</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right"><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -72,7 +78,9 @@ export function PeopleSkeleton() {
                   <Skeleton className="ml-auto h-4 w-20" />
                 </TableCell>
                 <TableCell>
-                  <Skeleton className="ml-auto h-8 w-32" />
+                  <Button className="ml-auto" size="icon-sm" variant="ghost" disabled aria-label="User actions">
+                    <DotsThreeIcon weight="bold" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

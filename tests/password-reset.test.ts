@@ -26,6 +26,7 @@ type CreatedResetRequest = {
 const prisma = {
   user: {
     findUnique: mock(async () => (state.knownUser ? { id: "user-1" } : null)),
+    findFirst: mock(async () => (state.knownUser ? { id: "user-1" } : null)),
     findUniqueOrThrow: mock(async () => ({ id: "user-1", email: "student@example.test", name: "Student" })),
   },
   passwordResetRequest: {

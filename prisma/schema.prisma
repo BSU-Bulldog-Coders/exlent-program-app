@@ -43,6 +43,16 @@ enum AnnouncementDeliveryStatus {
   CANCELED
 }
 
+enum ResourceKind {
+  FILE
+  YOUTUBE
+}
+
+enum ResourceUploadStatus {
+  PENDING
+  READY
+}
+
 // --- Better Auth core tables ---
 
 model User {
@@ -57,6 +67,8 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  deletionScheduledAt DateTime?
+  deletionDueAt       DateTime?
 
   // Never settable from client input (see lib/auth.ts).
   role      Role      @default(STUDENT)
@@ -69,11 +81,12 @@ model User {
   classes      Class[]
   passwordResetRequests PasswordResetRequest[]
   announcementsAuthored Announcement[] @relation("AnnouncementAuthor")
-
+  resourcesCreated      Resource[]    @relation("ResourceCreator")
   // The saved default used by this admin's announcement composer. It is ignored
   // for students, who never receive the admin management controls.
   announcementEmailDefault Boolean @default(false)
 
+  @@index([deletionDueAt])
   @@map("user")
 }
 
@@ -196,6 +209,7 @@ model Class {
 
   attendances Attendance[]
   announcements Announcement[]
+  resources     Resource[]
 
   @@index([startsAt])
 }
@@ -213,9 +227,36 @@ model Announcement {
   updatedAt      DateTime @updatedAt
 
   deliveries AnnouncementDelivery[]
+  resources  Resource[]
 
   @@index([createdAt])
   @@index([classId])
+}
+
+model Resource {
+  id           String               @id @default(cuid())
+  title        String
+  description  String?
+  kind         ResourceKind
+  uploadStatus ResourceUploadStatus @default(READY)
+  originalName String?
+  contentType  String?
+  sizeBytes    Int?
+  objectKey    String?              @unique
+  youtubeUrl   String?
+  uploadId     String?
+  classId      String?
+  class        Class?               @relation(fields: [classId], references: [id], onDelete: SetNull)
+  announcementId String?
+  announcement   Announcement?      @relation(fields: [announcementId], references: [id], onDelete: SetNull)
+  createdById  String
+  createdBy    User                 @relation("ResourceCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([uploadStatus, createdAt])
+  @@index([classId])
+  @@index([announcementId])
 }
 
 // Each record snapshots one verified student recipient when an announcement is
