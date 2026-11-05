@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/dal";
 import { sendInviteEmail } from "@/lib/email";
 import { INVITE_TTL_MS, generateInviteToken, inviteStatus, inviteUrl } from "@/lib/invites";
 import { prisma } from "@/lib/prisma";
+import { ScoreAdjustmentError, adjustScore } from "@/lib/leaderboard";
 import { requestPasswordReset } from "@/lib/password-reset";
 import { deleteUserNow, scheduleUserDeletion, undoUserDeletion } from "@/lib/user-deletion";
 
@@ -148,4 +149,47 @@ export async function permanentlyDeleteUser(userId: string): Promise<UserDeletio
   revalidatePath("/admin/people");
   revalidatePath(`/admin/people/${userId}`);
   return { ok: true, status: result };
+}
+
+export type PointsResult = { ok: true; score: number } | { ok: false; error: string };
+
+const pointsSchema = z.object({
+  userId: z.string().min(1),
+  amount: z.number().int("Enter a whole number.").min(1, "Enter at least 1 point.").max(32767, "That is too many points."),
+  idempotencyKey: z.uuid(),
+});
+
+async function changePoints(
+  sign: 1 | -1,
+  userId: string,
+  amount: number,
+  idempotencyKey: string,
+): Promise<PointsResult> {
+  const admin = await requireAdmin();
+  const parsed = pointsSchema.safeParse({ userId, amount, idempotencyKey });
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  try {
+    const { score } = await adjustScore({
+      userId,
+      adminId: admin.id,
+      delta: sign * parsed.data.amount,
+      idempotencyKey: parsed.data.idempotencyKey,
+    });
+    revalidatePath("/admin/people");
+    revalidatePath("/");
+    revalidatePath("/leaderboard");
+    return { ok: true, score };
+  } catch (error) {
+    if (error instanceof ScoreAdjustmentError) return { ok: false, error: error.message };
+    console.error("[points] adjust failed", error);
+    return { ok: false, error: "Could not update points. Try again." };
+  }
+}
+
+export async function addPoints(userId: string, amount: number, idempotencyKey: string) {
+  return changePoints(1, userId, amount, idempotencyKey);
+}
+
+export async function removePoints(userId: string, amount: number, idempotencyKey: string) {
+  return changePoints(-1, userId, amount, idempotencyKey);
 }

@@ -1,5 +1,5 @@
 import { AnnouncementFeedSkeleton } from "@/components/announcements/announcement-feed-skeleton";
-import { LeaderboardPlaceholder } from "@/components/announcements/leaderboard-placeholder";
+import { TopLeaderboardSkeleton } from "@/components/leaderboard/top-leaderboard";
 
 export default function Loading() {
   return (
@@ -13,7 +13,7 @@ export default function Loading() {
         </div>
         <AnnouncementFeedSkeleton />
       </div>
-      <LeaderboardPlaceholder />
+      <TopLeaderboardSkeleton />
     </div>
   );
 }
