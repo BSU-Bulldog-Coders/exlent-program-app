@@ -1,7 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
+import { deliverDueAttendanceWarnings } from "@/lib/attendance-warning-delivery";
+import { evaluateClassClosure } from "@/lib/attendance-warnings";
 import { requireAdmin } from "@/lib/dal";
 import { isValidTimeZone } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
@@ -63,7 +66,8 @@ export async function openClass(id: string): Promise<ActionResult> {
   await requireAdmin();
   const result = await prisma.class.updateMany({
     where: { id, status: { not: "OPEN" } },
-    data: { status: "OPEN", openedAt: new Date(), closedAt: null },
+    // Reopening clears the check marker so the next close re-checks attendance.
+    data: { status: "OPEN", openedAt: new Date(), closedAt: null, attendanceCheckedAt: null },
   });
   if (result.count === 0 && !(await prisma.class.findUnique({ where: { id }, select: { id: true } }))) {
     return { ok: false, error: "Class not found." };
@@ -73,16 +77,51 @@ export async function openClass(id: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function closeClass(id: string): Promise<ActionResult> {
-  await requireAdmin();
+export type CloseClassResult = {
+  /** Students who were sent a missed-two-classes warning. */
+  warned: number;
+  /** Students whose account was scheduled for deletion (third miss in a row). */
+  scheduledForDeletion: number;
+  /** Another admin closed it first; nothing was done here. */
+  alreadyClosed?: boolean;
+};
+
+export async function closeClass(id: string): Promise<ActionResult<CloseClassResult>> {
+  const admin = await requireAdmin();
+  // Atomic: when two admins close at once exactly one update matches, so only
+  // that admin runs the attendance check.
   const result = await prisma.class.updateMany({
     where: { id, status: "OPEN" },
     data: { status: "CLOSED", closedAt: new Date() },
   });
-  if (result.count === 0) return { ok: false, error: "This class isn't open." };
+
+  if (result.count === 0) {
+    const current = await prisma.class.findUnique({ where: { id }, select: { status: true } });
+    if (current?.status === "CLOSED") {
+      revalidatePath(`/admin/classes/${id}`);
+      return { ok: true, warned: 0, scheduledForDeletion: 0, alreadyClosed: true };
+    }
+    return { ok: false, error: current ? "This class isn't open." : "Class not found." };
+  }
+
+  let warned = 0;
+  let scheduledForDeletion = 0;
+  try {
+    ({ warned, scheduledForDeletion } = await evaluateClassClosure(id, admin));
+  } catch (error) {
+    // The class is closed either way; the daily sweep re-runs the check.
+    console.error("[attendance-warnings] check failed, the daily sweep will retry", error);
+  }
+  if (warned > 0) {
+    after(async () => {
+      await deliverDueAttendanceWarnings();
+    });
+  }
+
   revalidatePath("/admin/classes");
   revalidatePath(`/admin/classes/${id}`);
-  return { ok: true };
+  revalidatePath("/admin/people");
+  return { ok: true, warned, scheduledForDeletion };
 }
 
 /**

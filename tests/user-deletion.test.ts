@@ -13,12 +13,14 @@ const state: {
   accounts: Set<string>;
   classes: Array<{ createdById: string }>;
   announcements: Array<{ authorId: string }>;
+  warnings: Array<{ userId: string; clearedAt: Date | null }>;
 } = {
   users: new Map(),
   sessions: new Set(),
   accounts: new Set(),
   classes: [],
   announcements: [],
+  warnings: [],
 };
 
 function reset(users: User[]) {
@@ -27,6 +29,7 @@ function reset(users: User[]) {
   state.accounts = new Set(users.map((user) => user.id));
   state.classes = [];
   state.announcements = [];
+  state.warnings = [];
 }
 
 const prisma = {
@@ -71,6 +74,18 @@ const prisma = {
     updateMany: mock(async ({ where, data }: { where: { authorId: string }; data: { authorId: string } }) => {
       for (const item of state.announcements) if (item.authorId === where.authorId) item.authorId = data.authorId;
       return { count: 0 };
+    }),
+  },
+  attendanceWarning: {
+    updateMany: mock(async ({ where }: { where: { userId: string; clearedAt: null } }) => {
+      let count = 0;
+      for (const warning of state.warnings) {
+        if (warning.userId === where.userId && warning.clearedAt === null) {
+          warning.clearedAt = new Date();
+          count += 1;
+        }
+      }
+      return { count };
     }),
   },
   $queryRaw: mock(async () => []),
@@ -123,6 +138,17 @@ describe("scheduled user deletion", () => {
       { id: "student", role: "STUDENT", deletionScheduledAt: new Date(), deletionDueAt: new Date() },
     ]);
     expect(await deletion.scheduleUserDeletion({ id: "admin-a" }, "student")).toBe("already-scheduled");
+  });
+
+  test("undo also clears the student's missed-classes warnings", async () => {
+    state.warnings = [
+      { userId: "student", clearedAt: null },
+      { userId: "other", clearedAt: null },
+    ];
+    await deletion.scheduleUserDeletion({ id: "admin-a" }, "student");
+    expect(await deletion.undoUserDeletion("student")).toBe("undone");
+    expect(state.warnings[0]?.clearedAt).not.toBeNull();
+    expect(state.warnings[1]?.clearedAt).toBeNull();
   });
 
   test("undo clears the schedule without restoring sessions", async () => {

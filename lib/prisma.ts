@@ -9,7 +9,12 @@ function createClient() {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
   }
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  // Optional: run against a non-default Postgres schema (used by the
+  // concurrency check). Unset means the default "public" schema.
+  const schema = process.env.DATABASE_SCHEMA;
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString }, schema ? { schema } : undefined),
+  });
 }
 
 export const prisma = globalForPrisma.prisma ?? createClient();

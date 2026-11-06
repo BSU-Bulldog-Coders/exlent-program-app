@@ -6,6 +6,7 @@ import { useTransition } from "react";
 import { CaretDownIcon, ListChecksIcon, LockIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { closeClass } from "@/app/(app)/admin/classes/actions";
+import { closeSummary } from "@/components/classes/close-summary";
 import { ClassFormDialog } from "@/components/classes/class-form-dialog";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -26,7 +27,7 @@ export function ClassActions({ data }: { data: ClassData }) {
     startTransition(async () => {
       const result = await closeClass(data.id);
       if (!result.ok) return void toast.error(result.error);
-      toast.success("Class closed. The QR code no longer works.");
+      toast.success(closeSummary(result, "Class closed. The QR code no longer works."));
       router.refresh();
     });
   }
