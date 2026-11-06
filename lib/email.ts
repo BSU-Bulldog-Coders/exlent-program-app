@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { Resend } from "resend";
 import { InviteEmail } from "@/emails/invite-email";
 import { AnnouncementEmail } from "@/emails/announcement-email";
+import { AttendanceWarningEmail } from "@/emails/attendance-warning-email";
 import { ResetPasswordEmail } from "@/emails/reset-password-email";
 import { VerifyEmail } from "@/emails/verify-email";
 import { WelcomeEmail } from "@/emails/welcome-email";
@@ -126,6 +127,28 @@ export function sendAnnouncementEmail(args: {
     react: AnnouncementEmail({
       title: args.title,
       body: args.body,
+      className: args.className,
+      url: args.url,
+    }),
+    linkForLog: args.url,
+    idempotencyKey: args.idempotencyKey,
+  });
+}
+
+export function sendAttendanceWarningEmail(args: {
+  to: string;
+  name: string;
+  previousClassName: string;
+  className: string;
+  url: string;
+  idempotencyKey: string;
+}) {
+  return send({
+    to: args.to,
+    subject: "You've missed your last two classes",
+    react: AttendanceWarningEmail({
+      name: args.name,
+      previousClassName: args.previousClassName,
       className: args.className,
       url: args.url,
     }),

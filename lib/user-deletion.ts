@@ -41,38 +41,48 @@ async function activeAdminCountWithLock(tx: Transaction) {
 }
 
 /** Schedule deletion and revoke every active session atomically. */
-export async function scheduleUserDeletion(actor: Actor, userId: string): Promise<ScheduleDeletionResult> {
-  return prisma.$transaction(async (tx) => {
-    // Read the role first, then lock every active admin in a stable order. This
-    // prevents two admin-deletion requests from deadlocking on different
-    // target rows while each verifies the final-active-admin safeguard.
-    const candidate = await tx.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
-    if (!candidate) return "not-found";
-    const activeAdmins = candidate.role === "ADMIN" ? await activeAdminCountWithLock(tx) : null;
-    const target = await lockUser(tx, userId);
-    if (!target) return "not-found";
-    if (target.id === actor.id) return "cannot-delete-self";
-    if (target.deletionScheduledAt) return "already-scheduled";
+export function scheduleUserDeletion(actor: Actor, userId: string): Promise<ScheduleDeletionResult> {
+  return prisma.$transaction((tx) => scheduleUserDeletionInTx(tx, actor, userId));
+}
 
-    if (target.role === "ADMIN" && activeAdmins !== null && activeAdmins <= 1) {
-      return "last-admin";
-    }
+/**
+ * The body of scheduleUserDeletion for callers that already hold a transaction
+ * (the missed-classes check schedules deletions inside its own locked one).
+ */
+export async function scheduleUserDeletionInTx(
+  tx: Transaction,
+  actor: Actor,
+  userId: string,
+): Promise<ScheduleDeletionResult> {
+  // Read the role first, then lock every active admin in a stable order. This
+  // prevents two admin-deletion requests from deadlocking on different
+  // target rows while each verifies the final-active-admin safeguard.
+  const candidate = await tx.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
+  if (!candidate) return "not-found";
+  const activeAdmins = candidate.role === "ADMIN" ? await activeAdminCountWithLock(tx) : null;
+  const target = await lockUser(tx, userId);
+  if (!target) return "not-found";
+  if (target.id === actor.id) return "cannot-delete-self";
+  if (target.deletionScheduledAt) return "already-scheduled";
 
-    // Transfer restrictive ownership now, ensuring that cron can delete this
-    // account even if the administrator who scheduled it later leaves.
-    await Promise.all([
-      tx.class.updateMany({ where: { createdById: target.id }, data: { createdById: actor.id } }),
-      tx.announcement.updateMany({ where: { authorId: target.id }, data: { authorId: actor.id } }),
-      tx.session.deleteMany({ where: { userId: target.id } }),
-    ]);
+  if (target.role === "ADMIN" && activeAdmins !== null && activeAdmins <= 1) {
+    return "last-admin";
+  }
 
-    const now = new Date();
-    await tx.user.update({
-      where: { id: target.id },
-      data: { deletionScheduledAt: now, deletionDueAt: accountDeletionDueAt(now) },
-    });
-    return "scheduled";
+  // Transfer restrictive ownership now, ensuring that cron can delete this
+  // account even if the administrator who scheduled it later leaves.
+  await Promise.all([
+    tx.class.updateMany({ where: { createdById: target.id }, data: { createdById: actor.id } }),
+    tx.announcement.updateMany({ where: { authorId: target.id }, data: { authorId: actor.id } }),
+    tx.session.deleteMany({ where: { userId: target.id } }),
+  ]);
+
+  const now = new Date();
+  await tx.user.update({
+    where: { id: target.id },
+    data: { deletionScheduledAt: now, deletionDueAt: accountDeletionDueAt(now) },
   });
+  return "scheduled";
 }
 
 export async function undoUserDeletion(userId: string): Promise<UndoDeletionResult> {
@@ -83,6 +93,12 @@ export async function undoUserDeletion(userId: string): Promise<UndoDeletionResu
     await tx.user.update({
       where: { id: target.id },
       data: { deletionScheduledAt: null, deletionDueAt: null },
+    });
+    // Reinstating an account also wipes its missed-classes warnings, so the
+    // student starts again from a clean count.
+    await tx.attendanceWarning.updateMany({
+      where: { userId: target.id, clearedAt: null },
+      data: { clearedAt: new Date() },
     });
     return "undone";
   });

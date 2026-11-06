@@ -24,6 +24,13 @@ enum ClassStatus {
   CLOSED
 }
 
+enum AttendanceWarningStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
 enum EmailOutboxKind {
   PASSWORD_RESET
 }
@@ -89,6 +96,7 @@ model User {
   // which clamps to 0..32767.
   totalScore Int @default(0) @map("total_score") @db.SmallInt
   scoreAdjustments ScoreAdjustment[]
+  attendanceWarnings AttendanceWarning[]
 
   @@index([deletionDueAt])
   @@index([totalScore(sort: Desc)])
@@ -210,11 +218,17 @@ model Class {
   createdBy   User        @relation(fields: [createdById], references: [id])
   openedAt    DateTime?
   closedAt    DateTime?
+  // Set once the missed-classes check has run for this close (see
+  // lib/attendance-warnings.ts). Reopening a class clears it so the next close
+  // re-checks; the daily cron re-runs any closed class where it is still null.
+  attendanceCheckedAt DateTime?
   createdAt   DateTime    @default(now())
 
   attendances Attendance[]
   announcements Announcement[]
   resources     Resource[]
+  warningsAsTrigger  AttendanceWarning[] @relation("AttendanceWarningClass")
+  warningsAsPrevious AttendanceWarning[] @relation("AttendanceWarningPreviousClass")
 
   @@index([startsAt])
 }
@@ -298,6 +312,39 @@ model Attendance {
 
   @@unique([classId, userId])
   @@index([userId])
+}
+
+// One row per warning email sent to a student who missed two classes in a row.
+// It doubles as the delivery outbox (same lease/retry shape as
+// AnnouncementDelivery), so the "already warned" state can only be SENT once the
+// email was really delivered. A warning stays active until the student attends a
+// later class or an admin undoes their scheduled deletion (clearedAt); a third
+// consecutive miss while a warning is active schedules the account for deletion.
+model AttendanceWarning {
+  id              String                  @id @default(cuid())
+  userId          String
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // The class whose close completed the two-in-a-row streak, and the one before it.
+  classId         String
+  class           Class                   @relation("AttendanceWarningClass", fields: [classId], references: [id], onDelete: Cascade)
+  previousClassId String
+  previousClass   Class                   @relation("AttendanceWarningPreviousClass", fields: [previousClassId], references: [id], onDelete: Cascade)
+  recipientEmail  String
+  idempotencyKey  String                  @unique
+  status          AttendanceWarningStatus @default(PENDING)
+  attempts        Int                     @default(0)
+  nextAttemptAt   DateTime                @default(now())
+  lockedUntil     DateTime?
+  leaseId         String?
+  lastError       String?
+  sentAt          DateTime?
+  clearedAt       DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@unique([userId, classId])
+  @@index([userId, createdAt])
+  @@index([status, nextAttemptAt])
 }
 
 // One row per admin points change. The unique idempotencyKey makes retries and

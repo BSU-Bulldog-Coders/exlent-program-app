@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { LockIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { closeClass } from "@/app/(app)/admin/classes/actions";
+import { closeSummary } from "@/components/classes/close-summary";
 import { Button } from "@/components/ui/button";
 
 export function CloseClassButton({ classId }: { classId: string }) {
@@ -19,7 +20,7 @@ export function CloseClassButton({ classId }: { classId: string }) {
         startTransition(async () => {
           const result = await closeClass(classId);
           if (!result.ok) return void toast.error(result.error);
-          toast.success("Class closed.");
+          toast.success(closeSummary(result));
           router.push(`/admin/classes/${classId}`);
         })
       }

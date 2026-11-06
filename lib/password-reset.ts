@@ -36,10 +36,11 @@ function isResetPayload(payload: unknown): payload is ResetPayload {
   return typeof value.name === "string" && typeof value.url === "string";
 }
 
-/** Exponential retry delay, capped so an active reset link is never held indefinitely. */
-export function emailRetryDelayMs(attempts: number) {
-  return Math.min(60 * 60 * 1000, 60_000 * 2 ** Math.max(0, attempts - 1));
-}
+// Lives in lib/email-retry.ts so other email workers can use it without loading
+// this module; re-exported here for existing callers.
+import { emailRetryDelayMs } from "@/lib/email-retry";
+
+export { emailRetryDelayMs };
 
 /**
  * Creates exactly one active reset request per user. The row-level lock makes
