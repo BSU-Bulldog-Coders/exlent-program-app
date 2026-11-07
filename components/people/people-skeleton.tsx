@@ -1,6 +1,7 @@
-import { DotsThreeIcon, UserPlusIcon } from "@phosphor-icons/react/ssr";
+import { DotsThreeIcon, MagnifyingGlassIcon, UserPlusIcon } from "@phosphor-icons/react/ssr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -20,7 +21,7 @@ const ROWS = 5;
 export function PeopleSkeleton() {
   return (
     <Tabs defaultValue="students" className="gap-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <TabsList>
           <TabsTrigger value="students">
             Students
@@ -41,10 +42,19 @@ export function PeopleSkeleton() {
             </Badge>
           </TabsTrigger>
         </TabsList>
-        <Button disabled>
-          <UserPlusIcon data-icon="inline-start" />
-          Invite student
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-64">
+            <MagnifyingGlassIcon
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input type="search" disabled placeholder="Search by name" aria-label="Search people by name" className="pr-9 pl-9" />
+          </div>
+          <Button disabled>
+            <UserPlusIcon data-icon="inline-start" />
+            Invite student
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-lg border">
