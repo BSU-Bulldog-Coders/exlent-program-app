@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { deliverDueAnnouncementDeliveries } from "@/lib/announcement-delivery";
 import { deliverDueAttendanceWarnings } from "@/lib/attendance-warning-delivery";
+import { deliverDueClassReminders } from "@/lib/class-reminders";
 import { evaluatePendingClassClosures } from "@/lib/attendance-warnings";
 import { deliverDueOutboxEvents } from "@/lib/password-reset";
 import { purgeDueUserDeletions } from "@/lib/user-deletion";
@@ -13,12 +14,13 @@ export async function GET(request: Request) {
   // Re-run any missed-classes check that never finished before delivering the
   // warnings it may have queued.
   const attendanceChecks = await evaluatePendingClassClosures();
-  const [passwordResets, announcements, attendanceWarnings, accountDeletions] = await Promise.all([
+  const [passwordResets, announcements, attendanceWarnings, classReminders, accountDeletions] = await Promise.all([
     deliverDueOutboxEvents(),
     deliverDueAnnouncementDeliveries(),
     deliverDueAttendanceWarnings(),
+    deliverDueClassReminders(),
     purgeDueUserDeletions(),
   ]);
-  const result = { passwordResets, announcements, attendanceChecks, attendanceWarnings, accountDeletions };
+  const result = { passwordResets, announcements, attendanceChecks, attendanceWarnings, classReminders, accountDeletions };
   return NextResponse.json(result);
 }
