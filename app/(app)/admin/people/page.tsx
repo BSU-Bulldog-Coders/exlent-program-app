@@ -5,6 +5,7 @@ import { PeopleTabs } from "@/components/people/people-tabs";
 import { InviteRowActions } from "@/components/people/invite-row-actions";
 import { ActiveUserActions, DeletedUserActions } from "@/components/people/user-deletion-actions";
 import { PeopleHeader } from "@/components/people/people-header";
+import { HideWhileSearching, SearchableRows } from "@/components/people/people-search";
 import { PeopleSkeleton } from "@/components/people/people-skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -58,9 +59,11 @@ async function PeopleContent() {
 
   return (
       <PeopleTabs
-        studentCount={students.length}
-        adminCount={admins.length}
-        deletedCount={deletedUsers.length}
+        names={{
+          students: students.map((user) => user.name),
+          admins: admins.map((user) => user.name),
+          deleted: deletedUsers.map((user) => user.name),
+        }}
         students={
           <div className="rounded-lg border">
             <Table>
@@ -75,10 +78,16 @@ async function PeopleContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.map((student) => {
+                <SearchableRows
+                  noun="students"
+                  colSpan={6}
+                  rows={students.map((student) => {
                   const summary = summaries.get(student.id);
                   const rate = summary ? percent(summary.attended, summary.eligible) : null;
-                  return (
+                  return {
+                    id: student.id,
+                    name: student.name,
+                    node: (
                     <TableRow key={student.id}>
                       <TableCell className="font-medium">
                         <Link href={`/admin/people/${student.id}`} className="hover:underline">
@@ -99,16 +108,22 @@ async function PeopleContent() {
                         <ActiveUserActions userId={student.id} name={student.name} email={student.email} score={student.totalScore} />
                       </TableCell>
                     </TableRow>
-                  );
+                    ),
+                  };
                 })}
-                <InviteRows invites={openInvites.filter((i) => i.role === "STUDENT")} colSpan={6} />
-                {students.length === 0 && openInvites.every((i) => i.role !== "STUDENT") ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      No students yet. Invite the first one.
-                    </TableCell>
-                  </TableRow>
-                ) : null}
+                />
+                <HideWhileSearching>
+                  <InviteRows invites={openInvites.filter((i) => i.role === "STUDENT")} colSpan={6} />
+                </HideWhileSearching>
+                <HideWhileSearching>
+                  {students.length === 0 && openInvites.every((i) => i.role !== "STUDENT") ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        No students yet. Invite the first one.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </HideWhileSearching>
               </TableBody>
             </Table>
           </div>
@@ -126,7 +141,13 @@ async function PeopleContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {admins.map((admin) => (
+                <SearchableRows
+                  noun="admins"
+                  colSpan={5}
+                  rows={admins.map((admin) => ({
+                    id: admin.id,
+                    name: admin.name,
+                    node: (
                   <TableRow key={admin.id}>
                     <TableCell className="font-medium">
                       <Link href={`/admin/people/${admin.id}`} className="hover:underline">
@@ -142,8 +163,12 @@ async function PeopleContent() {
                       <ActiveUserActions userId={admin.id} name={admin.name} email={admin.email} />
                     </TableCell>
                   </TableRow>
-                ))}
-                <InviteRows invites={openInvites.filter((i) => i.role === "ADMIN")} colSpan={5} />
+                    ),
+                  }))}
+                />
+                <HideWhileSearching>
+                  <InviteRows invites={openInvites.filter((i) => i.role === "ADMIN")} colSpan={5} />
+                </HideWhileSearching>
               </TableBody>
             </Table>
           </div>
@@ -161,7 +186,13 @@ async function PeopleContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {deletedUsers.map((user) => (
+                <SearchableRows
+                  noun="deleted users"
+                  colSpan={5}
+                  rows={deletedUsers.map((user) => ({
+                    id: user.id,
+                    name: user.name,
+                    node: (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
@@ -171,14 +202,18 @@ async function PeopleContent() {
                       <DeletedUserActions userId={user.id} name={user.name} email={user.email} />
                     </TableCell>
                   </TableRow>
-                ))}
-                {deletedUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No accounts are scheduled for deletion.
-                    </TableCell>
-                  </TableRow>
-                ) : null}
+                    ),
+                  }))}
+                />
+                <HideWhileSearching>
+                  {deletedUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        No accounts are scheduled for deletion.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </HideWhileSearching>
               </TableBody>
             </Table>
           </div>
