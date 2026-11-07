@@ -24,6 +24,13 @@ enum ClassStatus {
   CLOSED
 }
 
+enum ClassReminderStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
 enum AttendanceWarningStatus {
   PENDING
   PROCESSING
@@ -97,6 +104,7 @@ model User {
   totalScore Int @default(0) @map("total_score") @db.SmallInt
   scoreAdjustments ScoreAdjustment[]
   attendanceWarnings AttendanceWarning[]
+  classReminders     ClassReminder[]
 
   @@index([deletionDueAt])
   @@index([totalScore(sort: Desc)])
@@ -229,6 +237,7 @@ model Class {
   resources     Resource[]
   warningsAsTrigger  AttendanceWarning[] @relation("AttendanceWarningClass")
   warningsAsPrevious AttendanceWarning[] @relation("AttendanceWarningPreviousClass")
+  reminders          ClassReminder[]
 
   @@index([startsAt])
 }
@@ -302,6 +311,32 @@ model AnnouncementDelivery {
   @@index([status, nextAttemptAt])
 }
 
+// One row per student emailed when a class is created, asking them to attend and
+// check in. Doubles as the delivery outbox (same lease/retry shape as
+// AnnouncementDelivery). The address is snapshotted so retries hit the original
+// recipient. Only students are ever queued.
+model ClassReminder {
+  id             String                  @id @default(cuid())
+  classId        String
+  class          Class                   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipientEmail String
+  idempotencyKey String                  @unique
+  status         ClassReminderStatus     @default(PENDING)
+  attempts       Int                     @default(0)
+  nextAttemptAt  DateTime                @default(now())
+  lockedUntil    DateTime?
+  leaseId        String?
+  lastError      String?
+  sentAt         DateTime?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@unique([classId, userId])
+  @@index([status, nextAttemptAt])
+}
+
 model Attendance {
   id          String   @id @default(cuid())
   classId     String
@@ -309,6 +344,9 @@ model Attendance {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   checkedInAt DateTime @default(now())
+  // Where the student was when they checked in. Null for check-ins an admin added by hand and for older rows.
+  distanceMeters Int?
+  accuracyMeters Int?
 
   @@unique([classId, userId])
   @@index([userId])

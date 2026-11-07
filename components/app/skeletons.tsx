@@ -42,7 +42,16 @@ export type SkeletonColumn = {
   height?: string;
 };
 
-export function TableSkeleton({ columns, rows = 5 }: { columns: SkeletonColumn[]; rows?: number }) {
+export function TableSkeleton({
+  columns,
+  rows = 5,
+  footer,
+}: {
+  columns: SkeletonColumn[];
+  rows?: number;
+  /** A <TableFooter> mirroring the real table's footer. */
+  footer?: React.ReactNode;
+}) {
   return (
     <div className="rounded-lg border">
       <Table>
@@ -73,6 +82,7 @@ export function TableSkeleton({ columns, rows = 5 }: { columns: SkeletonColumn[]
             </TableRow>
           ))}
         </TableBody>
+        {footer}
       </Table>
     </div>
   );

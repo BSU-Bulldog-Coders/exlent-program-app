@@ -1,5 +1,8 @@
 import { PlusIcon } from "@phosphor-icons/react/ssr";
 import { TableSkeleton } from "@/components/app/skeletons";
+import { ADMIN_CLASS_COLUMNS } from "@/components/classes/class-list-columns";
+import { ClassPaginationSkeleton } from "@/components/classes/class-pagination";
+import { ClassSearchSkeleton } from "@/components/classes/class-search";
 import { Button } from "@/components/ui/button";
 
 export default function Loading() {
@@ -17,14 +20,8 @@ export default function Loading() {
           New
         </Button>
       </div>
-      <TableSkeleton
-        columns={[
-          { label: "Name", width: "w-48" },
-          { label: "Date", width: "w-40" },
-          { label: "Status", width: "w-16", pill: true },
-          { label: "Checked in", width: "w-8", align: "right" },
-        ]}
-      />
+      <ClassSearchSkeleton />
+      <TableSkeleton columns={ADMIN_CLASS_COLUMNS} footer={<ClassPaginationSkeleton colSpan={4} />} />
     </>
   );
 }

@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { Resend } from "resend";
 import { InviteEmail } from "@/emails/invite-email";
 import { AnnouncementEmail } from "@/emails/announcement-email";
+import { ClassReminderEmail } from "@/emails/class-reminder-email";
 import { AttendanceWarningEmail } from "@/emails/attendance-warning-email";
 import { ResetPasswordEmail } from "@/emails/reset-password-email";
 import { VerifyEmail } from "@/emails/verify-email";
@@ -150,6 +151,28 @@ export function sendAttendanceWarningEmail(args: {
       name: args.name,
       previousClassName: args.previousClassName,
       className: args.className,
+      url: args.url,
+    }),
+    linkForLog: args.url,
+    idempotencyKey: args.idempotencyKey,
+  });
+}
+
+export function sendClassReminderEmail(args: {
+  to: string;
+  name: string;
+  className: string;
+  startsAt: string;
+  url: string;
+  idempotencyKey: string;
+}) {
+  return send({
+    to: args.to,
+    subject: `Reminder: ${args.className}`,
+    react: ClassReminderEmail({
+      name: args.name,
+      className: args.className,
+      startsAt: args.startsAt,
       url: args.url,
     }),
     linkForLog: args.url,

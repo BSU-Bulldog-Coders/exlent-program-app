@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { z } from "zod";
+import { deliverDueClassReminders, queueClassReminders } from "@/lib/class-reminders";
 import { deliverDueAttendanceWarnings } from "@/lib/attendance-warning-delivery";
 import { evaluateClassClosure } from "@/lib/attendance-warnings";
 import { requireAdmin } from "@/lib/dal";
@@ -26,18 +27,28 @@ export async function createClass(
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const { name, description, startsAt, timezone } = parsed.data;
 
-  const created = await prisma.class.create({
-    data: {
-      name,
-      description: description || null,
-      startsAt: new Date(startsAt),
-      timezone,
-      // New classes accept check-ins right away; an admin closes them when done.
-      status: "OPEN",
-      openedAt: new Date(),
-      createdById: admin.id,
-    },
+  // The class and its student reminders commit together, so a class never exists
+  // half-announced. Delivery happens after the response, with the cron as a retry net.
+  const { created, queued } = await prisma.$transaction(async (tx) => {
+    const created = await tx.class.create({
+      data: {
+        name,
+        description: description || null,
+        startsAt: new Date(startsAt),
+        timezone,
+        // New classes accept check-ins right away; an admin closes them when done.
+        status: "OPEN",
+        openedAt: new Date(),
+        createdById: admin.id,
+      },
+    });
+    return { created, queued: await queueClassReminders(tx, created.id) };
   });
+  if (queued > 0) {
+    after(async () => {
+      await deliverDueClassReminders();
+    });
+  }
   revalidatePath("/admin/classes");
   return { ok: true, id: created.id };
 }
