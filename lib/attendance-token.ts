@@ -5,6 +5,8 @@ import { requireEnv } from "@/lib/env";
 /** How long a scanned token stays valid. The QR on screen refreshes more often. */
 export const ATTENDANCE_TOKEN_TTL_MS = 60_000;
 export const ATTENDANCE_TOKEN_ROTATE_MS = 30_000;
+/** Extra time granted to a valid scan when the student must sign in or sign up first. */
+export const ATTENDANCE_SIGN_IN_GRACE_MS = 10 * 60_000;
 
 function secret() {
   return process.env.ATTENDANCE_TOKEN_SECRET ?? requireEnv("BETTER_AUTH_SECRET");
@@ -14,8 +16,12 @@ function sign(payload: string) {
   return createHmac("sha256", secret()).update(`attendance:${payload}`).digest("base64url");
 }
 
-export function createAttendanceToken(classId: string, now = Date.now()) {
-  const expiresAt = now + ATTENDANCE_TOKEN_TTL_MS;
+export function createAttendanceToken(
+  classId: string,
+  now = Date.now(),
+  ttlMs = ATTENDANCE_TOKEN_TTL_MS,
+) {
+  const expiresAt = now + ttlMs;
   const payload = Buffer.from(JSON.stringify({ c: classId, e: expiresAt })).toString("base64url");
   return { token: `${payload}.${sign(payload)}`, expiresAt };
 }
