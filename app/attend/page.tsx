@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { CheckIn } from "@/components/classes/check-in";
 import { Button } from "@/components/ui/button";
+import {
+  ATTENDANCE_RESUME_TTL_MS,
+  createAttendanceToken,
+  verifyAttendanceToken,
+} from "@/lib/attendance-token";
 import { getCurrentUser, homePathFor } from "@/lib/dal";
 
 export const metadata: Metadata = { title: "Check in" };
@@ -39,8 +44,26 @@ async function AttendContent({
 
   const user = await getCurrentUser();
   if (!user) {
+    // The on-screen code lives ~60s, which is too short to sign in or sign up.
+    // If it was valid at scan time, swap it for a short-lived resume token.
+    const verified = verifyAttendanceToken(token);
+    if (!verified.ok) {
+      return (
+        <Message
+          title={verified.reason === "expired" ? "QR code expired" : "QR code not valid"}
+          body="Scan the QR code on the screen again to check in."
+        />
+      );
+    }
+    const { token: resumeToken } = createAttendanceToken(
+      verified.classId,
+      Date.now(),
+      ATTENDANCE_RESUME_TTL_MS,
+    );
     // Sign in, then come straight back here: the check-in happens automatically.
-    redirect(`/login?callbackURL=${encodeURIComponent(`/attend?t=${token}`)}`);
+    redirect(
+      `/login?callbackURL=${encodeURIComponent(`/attend?t=${encodeURIComponent(resumeToken)}`)}`,
+    );
   }
   if (user.role !== "STUDENT") {
     return (
