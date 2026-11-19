@@ -76,6 +76,7 @@ const prisma = {
       return { count: 0 };
     }),
   },
+  exercise: { updateMany: mock(async () => ({ count: 0 })) },
   attendanceWarning: {
     updateMany: mock(async ({ where }: { where: { userId: string; clearedAt: null } }) => {
       let count = 0;

@@ -4,6 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { ClassStatusBadge } from "@/components/classes/class-status-badge";
 import { SelfCheckInButton } from "@/components/classes/self-check-in-button";
+import { ClassContentTabs } from "@/components/classes/class-content-tabs";
+import { ExerciseTable } from "@/components/exercises/exercise-table";
+import { listExercises } from "@/lib/exercise-list";
 import { ClassResources } from "@/components/resources/class-resources";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/dal";
@@ -17,7 +20,7 @@ export default async function StudentClassPage(props: PageProps<"/classes/[id]">
   const { id } = await props.params;
   if (user.role === "ADMIN") redirect(`/admin/classes/${id}`);
 
-  const [item, attendance, resources] = await Promise.all([
+  const [item, attendance, resources, exercises] = await Promise.all([
     prisma.class.findUnique({
       where: { id },
       select: { name: true, description: true, startsAt: true, timezone: true, status: true },
@@ -27,6 +30,7 @@ export default async function StudentClassPage(props: PageProps<"/classes/[id]">
       select: { checkedInAt: true },
     }),
     prisma.resource.findMany({ where: { classId: id, uploadStatus: "READY" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, description: true, kind: true, originalName: true, youtubeUrl: true } }),
+    listExercises(user, id),
   ]);
   // Drafts are admin-only, same as the classes list.
   if (!item || item.status === "DRAFT") notFound();
@@ -56,7 +60,7 @@ export default async function StudentClassPage(props: PageProps<"/classes/[id]">
         </div>
         {item.status === "OPEN" && !attendance ? <SelfCheckInButton classId={id} /> : null}
       </div>
-      <ClassResources classId={id} classes={[]} resources={resources} canManage={false} />
+      <ClassContentTabs resources={<ClassResources classId={id} classes={[]} resources={resources} canManage={false} />} exercises={<ExerciseTable exercises={exercises} isAdmin={false} returnTo={`/classes/${id}`} />} />
     </>
   );
 }

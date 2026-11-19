@@ -2,6 +2,7 @@ import { BackLinkSkeleton, InlineSkeleton } from "@/components/app/skeletons";
 import { Button } from "@/components/ui/button";
 import { CheckCircleIcon } from "@phosphor-icons/react/ssr";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ClassContentSkeleton } from "@/components/classes/class-content-skeleton";
 
 export default function Loading() {
   return (
@@ -24,12 +25,7 @@ export default function Loading() {
           Check in
         </Button>
       </div>
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <div><h2 className="text-2xl">Resources</h2><p className="text-sm text-muted-foreground">Materials shared for this class.</p></div>
-        </div>
-        <Skeleton className="h-28 w-full" />
-      </section>
+      <ClassContentSkeleton />
     </>
   );
 }
