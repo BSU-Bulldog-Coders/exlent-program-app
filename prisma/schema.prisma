@@ -105,6 +105,10 @@ model User {
   scoreAdjustments ScoreAdjustment[]
   attendanceWarnings AttendanceWarning[]
   classReminders     ClassReminder[]
+  exercisesCreated Exercise[] @relation("ExerciseCreator")
+  exerciseProgress ExerciseProgress[]
+  exerciseRuns ExerciseRun[]
+  testcaseReports TestcaseReport[]
 
   @@index([deletionDueAt])
   @@index([totalScore(sort: Desc)])
@@ -238,6 +242,7 @@ model Class {
   warningsAsTrigger  AttendanceWarning[] @relation("AttendanceWarningClass")
   warningsAsPrevious AttendanceWarning[] @relation("AttendanceWarningPreviousClass")
   reminders          ClassReminder[]
+  exercises ExerciseClass[]
 
   @@index([startsAt])
 }
@@ -399,4 +404,129 @@ model ScoreAdjustment {
 
   @@index([userId, createdAt])
   @@map("score_adjustment")
+}
+
+enum ExerciseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+enum ExerciseRunStatus {
+  RUNNING
+  PASSED
+  FAILED
+}
+enum TestcaseResultStatus {
+  PASSED
+  FAILED
+  UNFINISHED
+}
+enum TestcaseReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+model Exercise {
+  id String @id @default(cuid())
+  title String
+  description String
+  starterCode String @default("")
+  status ExerciseStatus @default(DRAFT)
+  creatorId String
+  creator User @relation("ExerciseCreator", fields: [creatorId], references: [id], onDelete: Restrict)
+  currentRevisionId String? @unique
+  currentRevision ExerciseRevision? @relation("CurrentExerciseRevision", fields: [currentRevisionId], references: [id], onDelete: SetNull)
+  revisions ExerciseRevision[] @relation("ExerciseRevisions")
+  classes ExerciseClass[]
+  progress ExerciseProgress[]
+  runs ExerciseRun[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, createdAt])
+}
+model ExerciseClass {
+  exerciseId String
+  classId String
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  @@id([exerciseId, classId])
+  @@index([classId])
+}
+model ExerciseRevision {
+  id String @id @default(cuid())
+  exerciseId String
+  exercise Exercise @relation("ExerciseRevisions", fields: [exerciseId], references: [id], onDelete: Cascade)
+  currentFor Exercise? @relation("CurrentExerciseRevision")
+  number Int
+  testcases TestcaseRevision[]
+  runs ExerciseRun[]
+  passedProgress ExerciseProgress[] @relation("PassedRevision")
+  createdAt DateTime @default(now())
+  @@unique([exerciseId, number])
+}
+model TestcaseRevision {
+  id String @id @default(cuid())
+  revisionId String
+  revision ExerciseRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  position Int
+  input String
+  expectedOutput String
+  results TestcaseResult[]
+  reports TestcaseReport[]
+  @@unique([revisionId, position])
+}
+model ExerciseProgress {
+  id String @id @default(cuid())
+  exerciseId String
+  userId String
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  latestRunId String? @unique
+  latestRun ExerciseRun? @relation("LatestRun", fields: [latestRunId], references: [id], onDelete: SetNull)
+  passedRevisionId String?
+  passedRevision ExerciseRevision? @relation("PassedRevision", fields: [passedRevisionId], references: [id], onDelete: SetNull)
+  updatedAt DateTime @updatedAt
+  @@unique([exerciseId, userId])
+  @@index([userId])
+}
+model ExerciseRun {
+  id String @id @default(cuid())
+  exerciseId String
+  userId String
+  revisionId String
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revision ExerciseRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict)
+  latestFor ExerciseProgress? @relation("LatestRun")
+  code String
+  status ExerciseRunStatus @default(RUNNING)
+  failureReason String?
+  results TestcaseResult[]
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  @@index([userId, createdAt])
+  @@index([exerciseId, userId, createdAt])
+}
+model TestcaseResult {
+  id String @id @default(cuid())
+  runId String
+  testcaseId String
+  run ExerciseRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  testcase TestcaseRevision @relation(fields: [testcaseId], references: [id], onDelete: Restrict)
+  status TestcaseResultStatus
+  actualOutput String?
+  error String?
+  @@unique([runId, testcaseId])
+}
+model TestcaseReport {
+  id String @id @default(cuid())
+  testcaseId String
+  userId String
+  testcase TestcaseRevision @relation(fields: [testcaseId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reason String
+  status TestcaseReportStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, createdAt])
 }

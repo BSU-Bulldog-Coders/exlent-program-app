@@ -74,6 +74,7 @@ export async function scheduleUserDeletionInTx(
   await Promise.all([
     tx.class.updateMany({ where: { createdById: target.id }, data: { createdById: actor.id } }),
     tx.announcement.updateMany({ where: { authorId: target.id }, data: { authorId: actor.id } }),
+    tx.exercise.updateMany({ where: { creatorId: target.id }, data: { creatorId: actor.id } }),
     tx.session.deleteMany({ where: { userId: target.id } }),
   ]);
 

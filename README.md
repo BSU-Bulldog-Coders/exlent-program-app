@@ -11,6 +11,7 @@ Stack: Next.js 16 (App Router, Cache Components), Postgres + Prisma 7, Better Au
    - `DATABASE_URL`: a hosted Postgres URL (Neon/Supabase). Optional `DIRECT_URL` for migrations.
    - `BETTER_AUTH_SECRET`: `openssl rand -base64 32`
    - `RESEND_API_KEY`, `RESEND_FROM`: until a domain is verified in Resend, `onboarding@resend.dev` only delivers to your own Resend account email.
+   - `UPSTASH_BOX_API_KEY`: server-only API key for Python exercise execution.
    - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`: the first admin.
 3. `bun run db:deploy` (applies `prisma/migrations`; use `bun run db:migrate` while changing the schema)
 4. `bun run db:seed` creates the first admin (safe to re-run)
@@ -38,6 +39,7 @@ Environment variables to set in the Vercel project (Production):
 | `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_URL` | Your production domain. If unset, the Vercel domain is used |
 | `ATTENDANCE_TOKEN_SECRET` | Optional; falls back to `BETTER_AUTH_SECRET` |
 | `RESEND_API_KEY`, `RESEND_FROM` | `RESEND_FROM` must be on a domain verified in Resend before you can email anyone |
+| `UPSTASH_BOX_API_KEY` | Required for sandboxed Python exercises |
 | `CRON_SECRET` | Random secret used to authenticate the daily password-reset email retry cron job |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | Only read on the first deploy. You can remove `ADMIN_PASSWORD` afterwards |
 
@@ -48,6 +50,7 @@ Environment variables to set in the Vercel project (Production):
 - **Password resets:** an active reset link is valid for 24 hours and produces one durable email event. The app attempts delivery immediately; Vercel Hobby also retries pending email once daily through `/api/cron/email-outbox`. Set `CRON_SECRET` in Vercel so its scheduled request is authenticated. A temporary email outage can therefore require the person to request another link after the 24-hour window.
 - **Classes:** Classes → New (name, date, description). A new class is open for check-in immediately; Close stops it. Take attendance lists every student with Present / Absent buttons, and Scan QR code (top right of that page) shows the rotating QR for students to scan. The start time and timezone are taken from the creating admin's device.
 - **Missed-classes warnings:** when an admin closes a class, the app checks that class and the previous held class (closed, with at least one attendance). A verified student marked present in neither gets a warning email (and a row in `AttendanceWarning`). If they then miss the very next class too (three in a row) while that warning has been delivered, their account is scheduled for deletion (30 days, undoable on the People page). Attending any later class clears the warning and the count restarts; so does undoing a scheduled deletion. The check runs once per close under a database lock, so two admins closing at once can't double-warn; the daily cron re-runs any check that failed. Classes nobody attended are ignored, and classes closed out of order are skipped. `bun run check:attendance-concurrency` (needs `TEST_DATABASE_URL`) verifies the locking against a real database in a throwaway schema.
+- **Exercises:** admins create, publish, and assign Python exercises to classes. Students run code against visible testcases, retain run history, and can report a testcase. Runs use one network-disabled Upstash ephemeral box with separate processes per testcase; shared box state can affect later cases. Drafts are stored in the browser. The 256 MB limit is per process, not an aggregate box limit.
 - **QR:** the code encodes `/attend?t=<token>` where the token is HMAC-signed, bound to the class, and valid for 60 seconds; the screen refreshes it every 30 seconds. Scanning while signed out sends the student to sign in and then records attendance automatically.
 - **Visibility:** admins see everything. Students see only the classes they attended and their own profile.
 
