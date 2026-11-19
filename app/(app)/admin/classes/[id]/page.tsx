@@ -5,6 +5,9 @@ import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { AttendeeList } from "@/components/classes/attendee-list";
 import { ClassActions } from "@/components/classes/class-actions";
 import { ClassStatusBadge } from "@/components/classes/class-status-badge";
+import { ClassContentTabs } from "@/components/classes/class-content-tabs";
+import { ExerciseTable } from "@/components/exercises/exercise-table";
+import { listExercises } from "@/lib/exercise-list";
 import { ClassResources } from "@/components/resources/class-resources";
 import { getClassAttendance } from "@/lib/classes";
 import { requireAdmin } from "@/lib/dal";
@@ -14,14 +17,15 @@ import { prisma } from "@/lib/prisma";
 export const metadata: Metadata = { title: "Class" };
 
 export default async function AdminClassPage(props: PageProps<"/admin/classes/[id]">) {
-  await requireAdmin();
+  const user = await requireAdmin();
   const { id } = await props.params;
   const item = await prisma.class.findUnique({ where: { id } });
   if (!item) notFound();
-  const [attendance, classes, resources] = await Promise.all([
+  const [attendance, classes, resources, exercises] = await Promise.all([
     getClassAttendance(id),
     prisma.class.findMany({ orderBy: { startsAt: "desc" }, select: { id: true, name: true } }),
     prisma.resource.findMany({ where: { classId: id, uploadStatus: "READY" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, description: true, kind: true, originalName: true, youtubeUrl: true } }),
+    listExercises(user, id),
   ]);
 
   return (
@@ -53,7 +57,7 @@ export default async function AdminClassPage(props: PageProps<"/admin/classes/[i
           status: item.status,
         }} />
       </div>
-      <ClassResources classId={item.id} classes={classes} resources={resources} />
+      <ClassContentTabs resources={<ClassResources classId={item.id} classes={classes} resources={resources} />} exercises={<ExerciseTable exercises={exercises} isAdmin returnTo={`/admin/classes/${id}`} />} />
       <AttendeeList
         classId={item.id}
         timezone={item.timezone}

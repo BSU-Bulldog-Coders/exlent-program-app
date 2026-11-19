@@ -1,0 +1,6 @@
+import { BackLinkSkeleton } from "@/components/app/skeletons";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+export function ExerciseFormSkeleton() { return <div className="max-w-4xl space-y-5"><div className="flex flex-wrap gap-2">{["Details", "Starter code", "Classes", "Testcases"].map((name, i) => <span key={name} className={`rounded-md px-3 py-2 text-sm ${i === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}. {name}</span>)}</div><section className="rounded-lg border p-5"><h2 className="mb-4 text-xl">Details</h2><div className="space-y-4"><label className="block space-y-2 text-sm font-medium">Title<Input disabled placeholder="e.g. Adding two numbers" /></label><label className="block space-y-2 text-sm font-medium">Description<Textarea disabled rows={7} placeholder="Describe the problem, input, and expected output." /></label></div></section><Button disabled>Next</Button></div>; }
+export default function Loading() { return <><BackLinkSkeleton label="Exercises" /><div><h1 className="text-4xl">New exercise</h1><p className="text-sm text-muted-foreground">Create an exercise for students to practice Python.</p></div><ExerciseFormSkeleton /></>; }
